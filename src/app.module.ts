@@ -13,6 +13,7 @@ import { RolesGuard } from './common/guards/roles.guard';
 import { validateEnvironment } from './config/env.validation';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
+import { FichaTecnicaModule } from './ficha_tecnica/ficha_tecnica.module';
 
 @Module({
   imports: [
@@ -77,6 +78,8 @@ import { UsersModule } from './users/users.module';
     UsersModule,
 
     AuthModule,
+
+    FichaTecnicaModule,
   ],
 
   controllers: [AppController],
