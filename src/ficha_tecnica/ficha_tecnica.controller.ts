@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import { FichaTecnicaService } from './ficha_tecnica.service';
 import { CreateFichaTecnicaDto } from './dto/create-ficha_tecnica.dto';
 import { UpdateFichaTecnicaDto } from './dto/update-ficha_tecnica.dto';
@@ -18,17 +27,25 @@ export class FichaTecnicaController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.fichaTecnicaService.findOne(+id);
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
+    return this.fichaTecnicaService.findOne(id);
+  }
+
+  @Get(':id/garantia')
+  getEstadoGarantia(@Param('id', ParseUUIDPipe) id: string) {
+    return this.fichaTecnicaService.getEstadoGarantia(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateFichaTecnicaDto: UpdateFichaTecnicaDto) {
-    return this.fichaTecnicaService.update(+id, updateFichaTecnicaDto);
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateFichaTecnicaDto: UpdateFichaTecnicaDto,
+  ) {
+    return this.fichaTecnicaService.update(id, updateFichaTecnicaDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.fichaTecnicaService.remove(+id);
+  remove(@Param('id', ParseUUIDPipe) id: string) {
+    return this.fichaTecnicaService.remove(id);
   }
 }
