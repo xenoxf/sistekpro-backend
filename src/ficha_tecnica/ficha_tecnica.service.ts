@@ -4,10 +4,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, ILike, Repository } from 'typeorm';
 import { CreateFichaTecnicaDto } from './dto/create-ficha_tecnica.dto';
 import { UpdateFichaTecnicaDto } from './dto/update-ficha_tecnica.dto';
 import { FichaTecnica } from './entities/ficha_tecnica.entity';
+import { TIPO_EQUIPO } from './enums/TIPO_EQUIPO.enum';
 
 const MS_POR_DIA = 1000 * 60 * 60 * 24;
 
@@ -43,8 +44,21 @@ export class FichaTecnicaService {
     return this.fichaTecnicaRepo.save(ficha);
   }
 
-  async findAll(): Promise<FichaTecnica[]> {
-    return this.fichaTecnicaRepo.find({ order: { createdAt: 'DESC' } });
+  async findAll(
+    serial?: string,
+    tipoEquipo?: TIPO_EQUIPO,
+  ): Promise<FichaTecnica[]> {
+    const where: FindOptionsWhere<FichaTecnica> = {};
+
+    if (serial) {
+      where.serialEquipo = ILike(`%${serial}%`);
+    }
+
+    if (tipoEquipo) {
+      where.tipoEquipo = tipoEquipo;
+    }
+
+    return this.fichaTecnicaRepo.find({ where, order: { createdAt: 'DESC' } });
   }
 
   async findOne(id: string): Promise<FichaTecnica> {

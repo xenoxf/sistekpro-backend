@@ -55,6 +55,10 @@ export class EnvironmentVariables {
   @IsNumber()
   @IsOptional()
   THROTTLE_LIMIT: number;
+
+  @IsString()
+  @IsOptional()
+  CORS_ORIGIN: string;
 }
 
 export function validateEnvironment(

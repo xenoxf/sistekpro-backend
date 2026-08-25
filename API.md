@@ -343,6 +343,23 @@ Respuesta `201`: objeto completo de la ficha creada (incluye `id` UUID, `created
 GET /ficha-tecnica
 ```
 
+Acepta filtros opcionales por query string (se pueden combinar):
+
+| Parámetro | Tipo | Descripción |
+|---|---|---|
+| `serial` | string | Búsqueda parcial e insensible a mayúsculas por serial del equipo |
+| `tipoEquipo` | enum | Filtra por tipo (`cpu`, `portatil`, `escritorio`, `server`, `todo_en_uno`) |
+
+Ejemplos:
+
+```http
+GET /ficha-tecnica?serial=LEN
+GET /ficha-tecnica?tipoEquipo=portatil
+GET /ficha-tecnica?serial=ideapad&tipoEquipo=portatil
+```
+
+Errores: `400` si `tipoEquipo` no es un valor válido.
+
 Respuesta `200`: array ordenado de más recientes a más antiguas.
 
 ### 4.3. Obtener ficha por id
@@ -408,7 +425,7 @@ Respuesta `200`:
 | POST | `/users` | API Key + JWT | admin | Crear usuario |
 | PATCH | `/users/:id` | API Key + JWT | admin | Editar usuario |
 | DELETE | `/users/:id` | API Key + JWT | admin | Eliminar usuario |
-| GET | `/ficha-tecnica` | API Key + JWT | cualquiera | Listar fichas |
+| GET | `/ficha-tecnica` | API Key + JWT | cualquiera | Listar fichas (filtros: `serial`, `tipoEquipo`) |
 | GET | `/ficha-tecnica/:id` | API Key + JWT | cualquiera | Ver ficha |
 | GET | `/ficha-tecnica/:id/garantia` | API Key + JWT | cualquiera | Estado de garantía |
 | POST | `/ficha-tecnica` | API Key + JWT | cualquiera | Crear ficha |
