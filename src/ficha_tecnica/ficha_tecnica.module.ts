@@ -8,5 +8,6 @@ import { FichaTecnica } from './entities/ficha_tecnica.entity';
   imports: [TypeOrmModule.forFeature([FichaTecnica])],
   controllers: [FichaTecnicaController],
   providers: [FichaTecnicaService],
+  exports: [FichaTecnicaService],
 })
 export class FichaTecnicaModule {}

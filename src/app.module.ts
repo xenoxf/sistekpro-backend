@@ -14,6 +14,7 @@ import { validateEnvironment } from './config/env.validation';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { FichaTecnicaModule } from './ficha_tecnica/ficha_tecnica.module';
+import { OrdenesModule } from './ordenes/ordenes.module';
 
 @Module({
   imports: [
@@ -80,6 +81,8 @@ import { FichaTecnicaModule } from './ficha_tecnica/ficha_tecnica.module';
     AuthModule,
 
     FichaTecnicaModule,
+
+    OrdenesModule,
   ],
 
   controllers: [AppController],

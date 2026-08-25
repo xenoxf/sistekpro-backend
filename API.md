@@ -358,7 +358,152 @@ Respuesta `200`:
 
 ---
 
-## 5. Resumen rápido de endpoints
+## 5. Órdenes de servicio `/ordenes` y seguimiento público
+
+Gestión del proceso de reparación de equipos. Cada orden genera un **código único** (ej: `STK-A7X9K2QFRT4M`) que se imprime como QR en el ticket/factura del cliente; al escanearlo, el cliente ve el progreso de su equipo en tiempo real.
+
+### 5.1. Flujo del QR
+
+```
+1. Staff crea la orden → POST /ordenes → responde { codigo, trackingUrl }
+2. El frontend imprime en el ticket un QR que codifica trackingUrl
+3. El cliente escanea → abre la página pública del frontend
+4. La página llama a GET /seguimiento/:codigo (solo header x-api-key)
+5. El cliente ve estado actual + línea de tiempo del progreso
+```
+
+La variable `TRACKING_URL_BASE` del `.env` define la URL base (ej: `https://sistek.com/seguimiento`). El código es aleatorio y no secuencial, por lo que no puede adivinarse.
+
+### 5.2. Estados de una orden
+
+| Estado | Significado |
+|---|---|
+| `recibido` | Equipo recibido en el taller (estado inicial) |
+| `diagnostico` | En revisión/diagnóstico |
+| `reparacion` | En proceso de reparación |
+| `esperando_repuestos` | Detenida a la espera de repuestos |
+| `terminado` | Reparación finalizada, listo para entrega |
+| `entregado` | Entregado al cliente (cierra la orden) |
+| `cancelado` | Orden cancelada |
+
+Cada cambio de estado registra automáticamente un evento en la línea de tiempo.
+
+### 5.3. Crear orden de servicio
+
+Requiere JWT con rol `admin` o `mantenimiento`.
+
+```http
+POST /ordenes
+```
+
+Body:
+
+```json
+{
+  "fichaTecnicaId": "uuid-de-la-ficha-tecnica-del-equipo",
+  "fallaReportada": "El equipo no enciende tras un corte de luz",
+  "fechaEntregaEstimada": "2026-09-01"
+}
+```
+
+- `fichaTecnicaId` es **obligatorio**: la orden siempre está vinculada a una ficha técnica registrada (`404` si no existe).
+- `fechaEntregaEstimada` es opcional.
+
+Respuesta `201`:
+
+```json
+{
+  "id": "uuid",
+  "codigo": "STK-A7X9K2QFRT4M",
+  "trackingUrl": "https://sistek.com/seguimiento/STK-A7X9K2QFRT4M",
+  "fichaTecnicaId": "uuid",
+  "fallaReportada": "El equipo no enciende tras un corte de luz",
+  "estado": "recibido",
+  "fechaIngreso": "2026-08-25T20:00:00.000Z",
+  "fechaEntregaEstimada": "2026-09-01T00:00:00.000Z",
+  "fechaEntregaReal": null,
+  "createdAt": "...",
+  "updatedAt": "..."
+}
+```
+
+> `trackingUrl` es la cadena exacta para codificar en el QR del ticket.
+
+### 5.4. Listar órdenes
+
+```http
+GET /ordenes?estado=reparacion
+```
+
+Filtro opcional `estado` (ver tabla 5.2). Respuesta `200`: array con la ficha técnica incluida, de más recientes a más antiguas.
+
+### 5.5. Detalle, edición y eliminación
+
+```http
+GET /ordenes/:id
+PATCH /ordenes/:id
+DELETE /ordenes/:id
+```
+
+`PATCH` acepta campos opcionales: `fallaReportada`, `fechaEntregaEstimada`.
+
+### 5.6. Cambiar estado de una orden
+
+```http
+PATCH /ordenes/:id/estado
+```
+
+Body:
+
+```json
+{
+  "estado": "reparacion",
+  "comentario": "Se cambió la fuente de poder"
+}
+```
+
+`comentario` es opcional y queda registrado en el timeline. Al pasar a `entregado`, el backend registra `fechaEntregaReal` automáticamente. Respuesta `200`: orden actualizada.
+
+### 5.7. Seguimiento público (lo que consulta el QR)
+
+**No requiere JWT**, solo el header `x-api-key`. Pensado para ser consumido desde la página pública del frontend.
+
+```http
+GET /seguimiento/:codigo
+```
+
+Ejemplo: `GET /seguimiento/STK-A7X9K2QFRT4M`
+
+Respuesta `200`:
+
+```json
+{
+  "codigo": "STK-A7X9K2QFRT4M",
+  "estado": "reparacion",
+  "fechaIngreso": "2026-08-25T20:00:00.000Z",
+  "fechaEntregaEstimada": "2026-09-01T00:00:00.000Z",
+  "fechaEntregaReal": null,
+  "trackingUrl": "https://sistek.com/seguimiento/STK-A7X9K2QFRT4M",
+  "cliente": { "nombre": "Carlos Gómez" },
+  "equipo": {
+    "tipo": "portatil",
+    "marca": "Lenovo",
+    "modelo": "IdeaPad 3",
+    "serial": "SN-LEN-2026-0001"
+  },
+  "eventos": [
+    { "titulo": "Equipo recibido", "descripcion": "Orden creada...", "fecha": "..." },
+    { "titulo": "Estado actualizado: diagnostico", "descripcion": null, "fecha": "..." },
+    { "titulo": "Estado actualizado: reparacion", "descripcion": "Se cambió la fuente de poder", "fecha": "..." }
+  ]
+}
+```
+
+Errores: `404` si el código no existe. Los eventos vienen en orden cronológico ascendente para renderizar la línea de tiempo.
+
+---
+
+## 6. Resumen rápido de endpoints
 
 | Método | Ruta | Auth | Rol | Descripción |
 |---|---|---|---|---|
@@ -375,8 +520,15 @@ Respuesta `200`:
 | POST | `/ficha-tecnica` | API Key + JWT | cualquiera | Crear ficha |
 | PATCH | `/ficha-tecnica/:id` | API Key + JWT | cualquiera | Editar ficha |
 | DELETE | `/ficha-tecnica/:id` | API Key + JWT | cualquiera | Eliminar ficha |
+| GET | `/ordenes?estado=` | API Key + JWT | admin/mantenimiento | Listar órdenes |
+| GET | `/ordenes/:id` | API Key + JWT | admin/mantenimiento | Ver orden |
+| POST | `/ordenes` | API Key + JWT | admin/mantenimiento | Crear orden (devuelve código + trackingUrl) |
+| PATCH | `/ordenes/:id` | API Key + JWT | admin/mantenimiento | Editar datos de la orden |
+| PATCH | `/ordenes/:id/estado` | API Key + JWT | admin/mantenimiento | Cambiar estado (+evento en timeline) |
+| DELETE | `/ordenes/:id` | API Key + JWT | admin/mantenimiento | Eliminar orden |
+| GET | `/seguimiento/:codigo` | **Solo API Key** | — (público) | Progreso para el QR del cliente |
 
-## 6. Notas para la integración
+## 7. Notas para la integración
 
 1. **Flujo recomendado**: health check → login → guardar token → llamar rutas protegidas con ambos headers.
 2. Manejar `401` centralmente: si el JWT expiró (error `UnauthorizedException`), redirigir al login.

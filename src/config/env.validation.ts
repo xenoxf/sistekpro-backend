@@ -59,6 +59,10 @@ export class EnvironmentVariables {
   @IsString()
   @IsOptional()
   CORS_ORIGIN: string;
+
+  @IsString()
+  @IsOptional()
+  TRACKING_URL_BASE: string;
 }
 
 export function validateEnvironment(

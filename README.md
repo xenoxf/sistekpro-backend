@@ -74,6 +74,8 @@ Resumen rápido:
 | `POST /auth/login` | Login con JWT (público) |
 | `/users` | Gestión de usuarios (solo rol admin; sin creación: los usuarios se crean por seed interno) |
 | `/ficha-tecnica` | CRUD de hojas de vida de equipos + consulta de garantía |
+| `/ordenes` | Órdenes de servicio con estados y timeline (admin/mantenimiento) |
+| `/seguimiento/:codigo` | Progreso público que consulta el QR del ticket del cliente |
 
 Todas las rutas requieren el header `x-api-key`; las protegidas además `Authorization: Bearer <token>`.
 
@@ -82,8 +84,9 @@ Todas las rutas requieren el header `x-api-key`; las protegidas además `Authori
 ```
 src/
 ├── auth/            # login y perfil
-├── users/           # CRUD de usuarios (rol admin)
+├── users/           # gestión de usuarios (rol admin)
 ├── ficha_tecnica/   # hojas de vida de equipos
+├── ordenes/         # órdenes de servicio + seguimiento público por QR
 ├── common/          # guards, decoradores, filtros e interfaces
 └── config/          # validación de variables de entorno
 
