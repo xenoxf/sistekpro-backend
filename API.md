@@ -21,7 +21,7 @@ Documentación de referencia para conectar el frontend con el backend (NestJS + 
 x-api-key: <API_KEY>
 ```
 
-Las rutas **protegidas** requieren además el token JWT emitido por `/auth/login` o `/auth/register`:
+Las rutas **protegidas** requieren además el token JWT emitido por `/auth/login`:
 
 ```
 Authorization: Bearer <token>
@@ -43,7 +43,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
 | Rol | Acceso |
 |---|---|
 | `admin` | Todo, incluida gestión de usuarios (`/users`) |
-| `mantenimiento` | Rutas generales; rol asignado por defecto al registrarse |
+| `mantenimiento` | Rutas generales (fichas técnicas) |
 
 El rol viaja dentro del JWT (`role`) y es verificado automáticamente por el backend.
 
@@ -92,45 +92,7 @@ Respuesta `200`:
 "Hola Mundo!"
 ```
 
-### 2.2. Registrar usuario
-
-Rate limit propio: **5 peticiones / minuto**.
-
-```http
-POST /auth/register
-```
-
-Body:
-
-```json
-{
-  "name": "jperez",
-  "password": "Clave*123"
-}
-```
-
-Validaciones:
-- `name`: string, 3–50 caracteres
-- `password`: mínimo 5 caracteres, con al menos 1 mayúscula, 1 número y 1 símbolo
-
-El rol asignado siempre es `mantenimiento`.
-
-Respuesta `201`:
-
-```json
-{
-  "token": "eyJhbGciOiJIUzI1NiIs...",
-  "user": {
-    "id": "550e8400-e29b-41d4-a716-446655440000",
-    "name": "jperez",
-    "role": "mantenimiento"
-  }
-}
-```
-
-Errores: `409` si el nombre ya está registrado.
-
-### 2.3. Login
+### 2.2. Login
 
 Rate limit propio: **10 peticiones / minuto**.
 
@@ -200,25 +162,9 @@ GET /users/:id
 
 `:id` debe ser un UUID válido (si no, responde `400`).
 
-### 3.3. Crear usuario
+> **Nota:** no existe endpoint para crear usuarios. Los usuarios se crean únicamente mediante el seed interno (`src/database/seed.ts`).
 
-```http
-POST /users
-```
-
-Body:
-
-```json
-{
-  "name": "nuevoUsuario",
-  "password": "Clave*123",
-  "role": "admin"
-}
-```
-
-`role` acepta `"admin"` o `"mantenimiento"`. Respuesta `201` con el usuario creado (sin password). Errores: `409` si el nombre existe.
-
-### 3.4. Actualizar usuario
+### 3.3. Actualizar usuario
 
 ```http
 PATCH /users/:id
@@ -236,7 +182,7 @@ Body (todos los campos opcionales):
 
 Si se envía `password` se re-hashea automáticamente. Respuesta `200` con el usuario actualizado.
 
-### 3.5. Eliminar usuario
+### 3.4. Eliminar usuario
 
 ```http
 DELETE /users/:id
@@ -248,7 +194,7 @@ Respuesta `200`:
 { "message": "Usuario eliminado correctamente" }
 ```
 
-### 3.6. Perfil del usuario autenticado
+### 3.5. Perfil del usuario autenticado
 
 Requiere cualquier JWT válido (sin importar el rol):
 
@@ -417,12 +363,10 @@ Respuesta `200`:
 | Método | Ruta | Auth | Rol | Descripción |
 |---|---|---|---|---|
 | GET | `/` | API Key | — | Health check |
-| POST | `/auth/register` | API Key | — | Registro (devuelve token) |
 | POST | `/auth/login` | API Key | — | Login (devuelve token) |
 | GET | `/auth/profile` | API Key + JWT | cualquiera | Perfil del token |
 | GET | `/users` | API Key + JWT | admin | Listar usuarios |
 | GET | `/users/:id` | API Key + JWT | admin | Ver usuario |
-| POST | `/users` | API Key + JWT | admin | Crear usuario |
 | PATCH | `/users/:id` | API Key + JWT | admin | Editar usuario |
 | DELETE | `/users/:id` | API Key + JWT | admin | Eliminar usuario |
 | GET | `/ficha-tecnica` | API Key + JWT | cualquiera | Listar fichas (filtros: `serial`, `tipoEquipo`) |

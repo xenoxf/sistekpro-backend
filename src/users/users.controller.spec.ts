@@ -1,12 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
-import { ROLE } from './enums/ROLE.enum';
 
 describe('UsersController', () => {
   let controller: UsersController;
   let usersService: {
-    create: jest.Mock;
     findAll: jest.Mock;
     findById: jest.Mock;
     update: jest.Mock;
@@ -15,7 +13,6 @@ describe('UsersController', () => {
 
   beforeEach(async () => {
     usersService = {
-      create: jest.fn(),
       findAll: jest.fn(),
       findById: jest.fn(),
       update: jest.fn(),
@@ -37,22 +34,6 @@ describe('UsersController', () => {
 
   it('should be defined', () => {
     expect(controller).toBeDefined();
-  });
-
-  describe('create', () => {
-    it('should delegate to the service', async () => {
-      const dto = {
-        name: 'admin',
-        password: 'plain-password',
-        role: ROLE.admin,
-      };
-
-      usersService.create.mockResolvedValue({ id: '1' });
-
-      await controller.create(dto);
-
-      expect(usersService.create).toHaveBeenCalledWith(dto);
-    });
   });
 
   describe('findAll', () => {

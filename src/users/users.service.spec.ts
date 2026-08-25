@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { ConflictException, NotFoundException } from '@nestjs/common';
+import { NotFoundException } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { User } from './entities/user.entity';
 import { ROLE } from './enums/ROLE.enum';
@@ -8,8 +8,6 @@ import { ROLE } from './enums/ROLE.enum';
 jest.mock('bcrypt', () => ({
   hash: jest.fn().mockResolvedValue('hashed-password'),
 }));
-
-import * as bcrypt from 'bcrypt';
 
 describe('UsersService', () => {
   let service: UsersService;
@@ -60,36 +58,6 @@ describe('UsersService', () => {
 
   it('should be defined', () => {
     expect(service).toBeDefined();
-  });
-
-  describe('create', () => {
-    it('should hash the password and create the user', async () => {
-      userRepository.findOneBy
-        .mockResolvedValueOnce(null)
-        .mockResolvedValue(mockUser);
-
-      const result = await service.create({
-        name: 'testuser',
-        password: 'plain-password',
-        role: ROLE.mantenimiento,
-      });
-
-      expect(bcrypt.hash).toHaveBeenCalledWith('plain-password', 10);
-      expect(userRepository.save).toHaveBeenCalled();
-      expect(result.id).toBe(mockUser.id);
-    });
-
-    it('should throw ConflictException when the name is taken', async () => {
-      userRepository.findOneBy.mockResolvedValue(mockUser);
-
-      await expect(
-        service.create({
-          name: 'testuser',
-          password: 'plain-password',
-          role: ROLE.mantenimiento,
-        }),
-      ).rejects.toThrow(ConflictException);
-    });
   });
 
   describe('findAll', () => {

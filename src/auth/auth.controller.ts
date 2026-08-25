@@ -9,7 +9,6 @@ import {
 import { Throttle } from '@nestjs/throttler';
 import { AuthService, AuthResponse } from './auth.service';
 import { CreateLoginDto } from './dto/create-login-dto.dto';
-import { CreateRegisterDto } from './dto/create-register-dto.dto';
 import { GetUser } from 'src/common/decorators/get-user.decorator';
 import { Public } from 'src/common/decorators/public.decorator';
 import { UsersService } from 'src/users/users.service';
@@ -22,14 +21,6 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly usersService: UsersService,
   ) {}
-
-  @Public()
-  @Post('register')
-  @HttpCode(HttpStatus.CREATED)
-  @Throttle({ default: { limit: 5, ttl: 60_000 } })
-  register(@Body() dto: CreateRegisterDto): Promise<AuthResponse> {
-    return this.authService.register(dto);
-  }
 
   @Public()
   @Post('login')

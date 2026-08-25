@@ -5,7 +5,6 @@ import { ROLE } from 'src/users/enums/ROLE.enum';
 import { User } from 'src/users/entities/user.entity';
 import { UsersService } from 'src/users/users.service';
 import { CreateLoginDto } from './dto/create-login-dto.dto';
-import { CreateRegisterDto } from './dto/create-register-dto.dto';
 import { JwtPayload } from 'src/common/interfaces/jwt-payload.interface';
 
 export interface AuthResponse {
@@ -23,15 +22,6 @@ export class AuthService {
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
   ) {}
-
-  async register(dto: CreateRegisterDto): Promise<AuthResponse> {
-    const user = await this.usersService.create({
-      ...dto,
-      role: ROLE.mantenimiento,
-    });
-
-    return this.buildAuthResponse(user);
-  }
 
   async login(dto: CreateLoginDto): Promise<AuthResponse> {
     const user = await this.usersService.findByNameWithPassword(dto.name);

@@ -71,9 +71,8 @@ Resumen rápido:
 
 | Recurso | Descripción |
 |---|---|
-| `POST /auth/register` | Registro de usuarios (público) |
 | `POST /auth/login` | Login con JWT (público) |
-| `/users` | Gestión de usuarios (solo rol admin) |
+| `/users` | Gestión de usuarios (solo rol admin; sin creación: los usuarios se crean por seed interno) |
 | `/ficha-tecnica` | CRUD de hojas de vida de equipos + consulta de garantía |
 
 Todas las rutas requieren el header `x-api-key`; las protegidas además `Authorization: Bearer <token>`.
@@ -82,11 +81,13 @@ Todas las rutas requieren el header `x-api-key`; las protegidas además `Authori
 
 ```
 src/
-├── auth/            # login, registro y perfil
+├── auth/            # login y perfil
 ├── users/           # CRUD de usuarios (rol admin)
 ├── ficha_tecnica/   # hojas de vida de equipos
 ├── common/          # guards, decoradores, filtros e interfaces
 └── config/          # validación de variables de entorno
+
+Los usuarios se crean únicamente mediante el script de seed interno (`src/database/seed.ts`); la API no expone endpoints de registro ni creación de usuarios.
 ```
 
 ## Seguridad
