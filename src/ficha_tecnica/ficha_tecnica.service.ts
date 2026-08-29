@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsWhere, ILike, Repository } from 'typeorm';
+import { FindOptionsWhere, ILike, In, Repository } from 'typeorm';
 import { CreateFichaTecnicaDto } from './dto/create-ficha_tecnica.dto';
 import { UpdateFichaTecnicaDto } from './dto/update-ficha_tecnica.dto';
 import { FichaTecnica } from './entities/ficha_tecnica.entity';
@@ -27,7 +27,9 @@ export class FichaTecnicaService {
   ) {}
 
   async create(dto: CreateFichaTecnicaDto): Promise<FichaTecnica> {
-    await this.assertSerialDisponible(dto.serialEquipo);
+    if (dto.serialEquipo) {
+      await this.assertSerialDisponible(dto.serialEquipo);
+    }
 
     const { fechaAdquisicion, fechaRealizacion, ...datos } = dto;
 
@@ -73,6 +75,20 @@ export class FichaTecnicaService {
 
   async findBySerial(serialEquipo: string): Promise<FichaTecnica | null> {
     return this.fichaTecnicaRepo.findOneBy({ serialEquipo });
+  }
+
+  async findByIds(ids: string[]): Promise<FichaTecnica[]> {
+    const fichas = await this.fichaTecnicaRepo.findBy({ id: In(ids) });
+
+    if (fichas.length !== ids.length) {
+      const encontrados = new Set(fichas.map((f) => f.id));
+      const faltantes = ids.filter((id) => !encontrados.has(id));
+      throw new NotFoundException(
+        `No se encontraron las fichas técnicas: ${faltantes.join(', ')}`,
+      );
+    }
+
+    return fichas;
   }
 
   async update(id: string, dto: UpdateFichaTecnicaDto): Promise<FichaTecnica> {

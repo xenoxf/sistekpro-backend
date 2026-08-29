@@ -16,32 +16,32 @@ export class FichaTecnica {
   @Column()
   nombreCliente: string;
 
-  @Column({ length: 30 })
-  telefonoCliente: string;
-
-  @Column()
-  direccionCliente: string;
-
-  @Column()
-  correoCliente: string;
-
-  @Column()
-  servicio: string;
-
-  @Column({ type: 'enum', enum: TIPO_EQUIPO })
-  tipoEquipo: TIPO_EQUIPO;
-
-  @Column()
-  nombreResponsable: string;
-
-  @Column()
-  marcaEquipo: string;
-
-  @Column()
-  modeloEquipo: string;
+  @Column({ length: 30, nullable: true })
+  telefonoCliente?: string;
 
   @Column({ nullable: true })
-  referencia: string;
+  direccionCliente?: string;
+
+  @Column({ nullable: true })
+  correoCliente?: string;
+
+  @Column({ nullable: true })
+  servicio?: string;
+
+  @Column({ type: 'enum', enum: TIPO_EQUIPO, nullable: true })
+  tipoEquipo?: TIPO_EQUIPO;
+
+  @Column({ nullable: true })
+  nombreResponsable?: string;
+
+  @Column({ nullable: true })
+  marcaEquipo?: string;
+
+  @Column({ nullable: true })
+  modeloEquipo?: string;
+
+  @Column({ nullable: true })
+  referencia?: string;
 
   @Column({ type: 'int', nullable: true })
   tiempoGarantiaMeses: number;
@@ -52,9 +52,9 @@ export class FichaTecnica {
   @Column({ nullable: true })
   tipoMonitor: string;
 
-  @Column({ unique: true })
+  @Column({ unique: true, nullable: true })
   @Index()
-  serialEquipo: string;
+  serialEquipo?: string;
 
   @Column({ type: 'float', nullable: true })
   tamanoPantallaPulgadas: number;

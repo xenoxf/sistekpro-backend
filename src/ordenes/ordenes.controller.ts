@@ -15,6 +15,7 @@ import { Roles } from 'src/common/decorators/roles.decorator';
 import { OrdenesService } from './ordenes.service';
 import { CreateOrdenDto } from './dto/create-orden.dto';
 import { UpdateOrdenDto } from './dto/update-orden.dto';
+import { AgregarFichasDto } from './dto/agregar-fichas.dto';
 import { CambiarEstadoDto } from './dto/cambiar-estado.dto';
 import { ORDEN_ESTADO } from './enums/ORDEN_ESTADO.enum';
 
@@ -50,6 +51,14 @@ export class OrdenesController {
     @Body() updateOrdenDto: UpdateOrdenDto,
   ) {
     return this.ordenesService.update(id, updateOrdenDto);
+  }
+
+  @Patch(':id/fichas')
+  agregarFichas(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() agregarFichasDto: AgregarFichasDto,
+  ) {
+    return this.ordenesService.agregarFichas(id, agregarFichasDto);
   }
 
   @Patch(':id/estado')

@@ -6,6 +6,7 @@ import { Repository } from 'typeorm';
 import { FichaTecnicaService } from '../ficha_tecnica/ficha_tecnica.service';
 import { CreateOrdenDto } from './dto/create-orden.dto';
 import { UpdateOrdenDto } from './dto/update-orden.dto';
+import { AgregarFichasDto } from './dto/agregar-fichas.dto';
 import { CambiarEstadoDto } from './dto/cambiar-estado.dto';
 import { OrdenServicio } from './entities/orden-servicio.entity';
 import { SeguimientoEvento } from './entities/seguimiento-evento.entity';
@@ -23,13 +24,13 @@ export interface SeguimientoPublico {
   fechaEntregaEstimada: Date | null;
   fechaEntregaReal: Date | null;
   trackingUrl: string | null;
-  cliente: { nombre: string };
-  equipo: {
+  clientes: string[];
+  equipos: {
     tipo: string;
     marca: string;
     modelo: string;
     serial: string;
-  };
+  }[];
   eventos: {
     titulo: string;
     descripcion: string | null;
@@ -51,10 +52,10 @@ export class OrdenesService {
   async create(
     dto: CreateOrdenDto,
   ): Promise<OrdenServicio & { trackingUrl: string | null }> {
-    const ficha = await this.fichaTecnicaService.findOne(dto.fichaTecnicaId);
+    const fichas = await this.fichaTecnicaService.findByIds(dto.fichaTecnicaIds);
 
     const orden = this.ordenesRepo.create({
-      fichaTecnicaId: ficha.id,
+      fichasTecnicas: fichas,
       fallaReportada: dto.fallaReportada,
       estado: ORDEN_ESTADO.RECIBIDO,
       fechaIngreso: new Date(),
@@ -70,7 +71,7 @@ export class OrdenesService {
     await this.crearEvento(
       orden,
       'Equipo recibido',
-      `Orden creada con falla reportada: ${dto.fallaReportada}`,
+      `Orden creada con ${fichas.length} equipo(s). Falla reportada: ${dto.fallaReportada}`,
     );
 
     return Object.assign(orden, {
@@ -78,12 +79,27 @@ export class OrdenesService {
     });
   }
 
+  async agregarFichas(
+    id: string,
+    dto: AgregarFichasDto,
+  ): Promise<OrdenServicio> {
+    const orden = await this.findOne(id);
+    const nuevas = await this.fichaTecnicaService.findByIds(dto.fichaTecnicaIds);
+
+    const existentes = new Set(orden.fichasTecnicas.map((f) => f.id));
+    for (const ficha of nuevas) {
+      if (!existentes.has(ficha.id)) orden.fichasTecnicas.push(ficha);
+    }
+
+    return this.ordenesRepo.save(orden);
+  }
+
   async findAll(estado?: ORDEN_ESTADO): Promise<OrdenServicio[]> {
     const where = estado ? { estado } : {};
 
     return this.ordenesRepo.find({
       where,
-      relations: { fichaTecnica: true },
+      relations: { fichasTecnicas: true },
       order: { createdAt: 'DESC' },
     });
   }
@@ -91,7 +107,7 @@ export class OrdenesService {
   async findOne(id: string): Promise<OrdenServicio> {
     const orden = await this.ordenesRepo.findOne({
       where: { id },
-      relations: { fichaTecnica: true },
+      relations: { fichasTecnicas: true },
     });
 
     if (!orden) {
@@ -150,7 +166,7 @@ export class OrdenesService {
 
     const orden = await this.ordenesRepo.findOne({
       where: { codigo: normalizado },
-      relations: { fichaTecnica: true },
+      relations: { fichasTecnicas: true },
     });
 
     if (!orden) {
@@ -162,6 +178,10 @@ export class OrdenesService {
       order: { createdAt: 'ASC' },
     });
 
+    const clientes = Array.from(
+      new Set(orden.fichasTecnicas.map((f) => f.nombreCliente).filter(Boolean)),
+    );
+
     return {
       codigo: orden.codigo,
       estado: orden.estado,
@@ -169,13 +189,13 @@ export class OrdenesService {
       fechaEntregaEstimada: orden.fechaEntregaEstimada,
       fechaEntregaReal: orden.fechaEntregaReal,
       trackingUrl: this.buildTrackingUrl(orden.codigo),
-      cliente: { nombre: orden.fichaTecnica.nombreCliente },
-      equipo: {
-        tipo: orden.fichaTecnica.tipoEquipo,
-        marca: orden.fichaTecnica.marcaEquipo,
-        modelo: orden.fichaTecnica.modeloEquipo,
-        serial: orden.fichaTecnica.serialEquipo,
-      },
+      clientes,
+      equipos: orden.fichasTecnicas.map((f) => ({
+        tipo: f.tipoEquipo ?? "",
+        marca: f.marcaEquipo ?? "",
+        modelo: f.modeloEquipo ?? "",
+        serial: f.serialEquipo ?? "",
+      })),
       eventos: eventos.map((e) => ({
         titulo: e.titulo,
         descripcion: e.descripcion,
@@ -216,7 +236,7 @@ export class OrdenesService {
   private buildTrackingUrl(codigo: string): string | null {
     const base = this.configService.get<string>('TRACKING_URL_BASE');
 
-    return base ? `${base.replace(/\/+$/, '')}/${codigo}` : null;
+    return base ? `${base.replace(/\/+$/, '')}?c=${codigo}` : null;
   }
 
   private async crearEvento(

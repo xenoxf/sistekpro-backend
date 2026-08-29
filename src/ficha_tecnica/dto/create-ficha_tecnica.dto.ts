@@ -1,7 +1,6 @@
 import {
   IsBoolean,
   IsDateString,
-  IsEmail,
   IsEnum,
   IsInt,
   IsNotEmpty,
@@ -13,212 +12,217 @@ import {
 } from 'class-validator';
 import { TIPO_EQUIPO } from '../enums/TIPO_EQUIPO.enum';
 
+/**
+ * El único dato obligatorio de una ficha técnica es el nombre del cliente.
+ * Todo lo demás es opcional; los campos que llegan vacíos se ignoran.
+ */
 export class CreateFichaTecnicaDto {
   @IsString()
   @Length(3, 100)
   @IsNotEmpty()
   nombreCliente: string;
 
-  @IsString()
-  @Length(6, 30)
-  @IsNotEmpty()
-  telefonoCliente: string;
-
-  @IsString()
-  @Length(5, 150)
-  @IsNotEmpty()
-  direccionCliente: string;
-
-  @IsEmail()
-  @IsNotEmpty()
-  correoCliente: string;
-
-  @IsString()
-  @Length(3, 100)
-  @IsNotEmpty()
-  servicio: string;
-
-  @IsEnum(TIPO_EQUIPO)
-  @IsNotEmpty()
-  tipoEquipo: TIPO_EQUIPO;
-
-  @IsString()
-  @Length(3, 100)
-  @IsNotEmpty()
-  nombreResponsable: string;
-
-  @IsString()
-  @Length(2, 50)
-  @IsNotEmpty()
-  marcaEquipo: string;
-
-  @IsString()
-  @Length(1, 50)
-  @IsNotEmpty()
-  modeloEquipo: string;
-
-  @IsString()
-  @Length(1, 50)
   @IsOptional()
+  @IsString()
+  @Length(0, 30)
+  telefonoCliente?: string;
+
+  @IsOptional()
+  @IsString()
+  @Length(0, 150)
+  direccionCliente?: string;
+
+  @IsOptional()
+  @IsString()
+  @Length(0, 100)
+  correoCliente?: string;
+
+  @IsOptional()
+  @IsString()
+  @Length(0, 100)
+  servicio?: string;
+
+  @IsOptional()
+  @IsEnum(TIPO_EQUIPO)
+  tipoEquipo?: TIPO_EQUIPO;
+
+  @IsOptional()
+  @IsString()
+  @Length(0, 100)
+  nombreResponsable?: string;
+
+  @IsOptional()
+  @IsString()
+  @Length(0, 50)
+  marcaEquipo?: string;
+
+  @IsOptional()
+  @IsString()
+  @Length(0, 50)
+  modeloEquipo?: string;
+
+  @IsOptional()
+  @IsString()
+  @Length(0, 50)
   referencia?: string;
 
+  @IsOptional()
   @IsInt()
   @Min(0)
   @Max(240)
-  @IsOptional()
   tiempoGarantiaMeses?: number;
 
-  @IsDateString()
   @IsOptional()
+  @IsDateString()
   fechaAdquisicion?: string;
 
-  @IsString()
-  @Length(2, 50)
   @IsOptional()
+  @IsString()
+  @Length(0, 50)
   tipoMonitor?: string;
 
+  @IsOptional()
   @IsString()
-  @Length(4, 60)
-  @IsNotEmpty()
-  serialEquipo: string;
+  @Length(0, 50)
+  serialEquipo?: string;
 
+  @IsOptional()
   @IsInt()
   @Min(1)
   @Max(100)
-  @IsOptional()
   tamanoPantallaPulgadas?: number;
 
-  @IsString()
-  @Length(2, 50)
   @IsOptional()
+  @IsString()
+  @Length(0, 50)
   procesadorMarca?: string;
 
-  @IsString()
-  @Length(2, 80)
   @IsOptional()
+  @IsString()
+  @Length(0, 80)
   procesadorModelo?: string;
 
-  @IsString()
-  @Length(2, 10)
   @IsOptional()
+  @IsString()
+  @Length(0, 10)
   procesadorBits?: string;
 
+  @IsOptional()
   @IsInt()
   @Min(1)
   @Max(512)
-  @IsOptional()
   nucleosCpu?: number;
 
-  @IsString()
-  @Length(2, 50)
   @IsOptional()
+  @IsString()
+  @Length(0, 50)
   velocidadProcesador?: string;
 
+  @IsOptional()
   @IsInt()
   @Min(1)
   @Max(4096)
-  @IsOptional()
   memoriaRamGb?: number;
 
+  @IsOptional()
   @IsInt()
   @Min(1)
   @Max(8)
-  @IsOptional()
   cantidadDiscosDuros?: number;
 
-  @IsString()
-  @Length(2, 30)
   @IsOptional()
+  @IsString()
+  @Length(0, 30)
   tecnologiaDisco1?: string;
 
+  @IsOptional()
   @IsInt()
   @Min(1)
   @Max(102400)
-  @IsOptional()
   capacidadDisco1Gb?: number;
 
-  @IsString()
-  @Length(2, 30)
   @IsOptional()
+  @IsString()
+  @Length(0, 30)
   tecnologiaDisco2?: string;
 
+  @IsOptional()
   @IsInt()
   @Min(1)
   @Max(102400)
-  @IsOptional()
   capacidadDisco2Gb?: number;
 
-  @IsBoolean()
   @IsOptional()
+  @IsBoolean()
   lectorDvdCd?: boolean;
 
-  @IsBoolean()
   @IsOptional()
+  @IsBoolean()
   tarjetaVideoIntegrada?: boolean;
 
-  @IsBoolean()
   @IsOptional()
+  @IsBoolean()
   tarjetaVideoIndependiente?: boolean;
 
+  @IsOptional()
   @IsInt()
   @Min(0)
   @Max(16)
-  @IsOptional()
   conectoresVga?: number;
 
+  @IsOptional()
   @IsInt()
   @Min(0)
   @Max(16)
-  @IsOptional()
   puertosHdmi?: number;
 
+  @IsOptional()
   @IsInt()
   @Min(0)
   @Max(32)
-  @IsOptional()
   puertosUsb?: number;
 
+  @IsOptional()
   @IsInt()
   @Min(0)
   @Max(16)
-  @IsOptional()
   puertosPci?: number;
 
+  @IsOptional()
   @IsInt()
   @Min(0)
   @Max(16)
-  @IsOptional()
   puertosPciExpress?: number;
 
-  @IsBoolean()
   @IsOptional()
+  @IsBoolean()
   tarjetaEthernet?: boolean;
 
-  @IsBoolean()
   @IsOptional()
+  @IsBoolean()
   tarjetaRedInalambrica?: boolean;
 
-  @IsString()
-  @Length(2, 50)
   @IsOptional()
+  @IsString()
+  @Length(0, 50)
   marcaMouse?: string;
 
-  @IsString()
-  @Length(2, 60)
   @IsOptional()
+  @IsString()
+  @Length(0, 60)
   serialMouse?: string;
 
-  @IsString()
-  @Length(2, 30)
   @IsOptional()
+  @IsString()
+  @Length(0, 30)
   tipoConectorMouse?: string;
 
+  @IsOptional()
   @IsString()
   @Length(0, 2000)
-  @IsOptional()
   observaciones?: string;
 
-  @IsDateString()
   @IsOptional()
+  @IsDateString()
   fechaRealizacion?: string;
 }

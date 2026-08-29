@@ -3,8 +3,8 @@ import {
   CreateDateColumn,
   Entity,
   Index,
-  JoinColumn,
-  ManyToOne,
+  JoinTable,
+  ManyToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -20,12 +20,9 @@ export class OrdenServicio {
   @Index()
   codigo: string;
 
-  @ManyToOne(() => FichaTecnica, { nullable: false, onDelete: 'RESTRICT' })
-  @JoinColumn({ name: 'fichaTecnicaId' })
-  fichaTecnica: FichaTecnica;
-
-  @Column({ type: 'uuid' })
-  fichaTecnicaId: string;
+  @ManyToMany(() => FichaTecnica)
+  @JoinTable()
+  fichasTecnicas: FichaTecnica[];
 
   @Column({ type: 'text' })
   fallaReportada: string;

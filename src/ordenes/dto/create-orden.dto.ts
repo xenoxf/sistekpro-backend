@@ -1,4 +1,6 @@
 import {
+  ArrayNotEmpty,
+  IsArray,
   IsDateString,
   IsNotEmpty,
   IsOptional,
@@ -8,9 +10,10 @@ import {
 } from 'class-validator';
 
 export class CreateOrdenDto {
-  @IsUUID()
-  @IsNotEmpty()
-  fichaTecnicaId: string;
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsUUID('4', { each: true })
+  fichaTecnicaIds: string[];
 
   @IsString()
   @Length(10, 1000)

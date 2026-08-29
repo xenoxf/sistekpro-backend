@@ -23,7 +23,7 @@ describe('OrdenesService', () => {
     save: jest.Mock;
     find: jest.Mock;
   };
-  let fichaTecnicaService: { findOne: jest.Mock };
+  let fichaTecnicaService: { findByIds: jest.Mock };
 
   const mockFicha = {
     id: 'ficha-uuid',
@@ -37,13 +37,12 @@ describe('OrdenesService', () => {
   const mockOrden: OrdenServicio = {
     id: 'orden-uuid',
     codigo: 'STK-A7X9K2QFRT4M',
-    fichaTecnica: mockFicha as never,
-    fichaTecnicaId: mockFicha.id,
+    fichasTecnicas: [mockFicha as never],
     fallaReportada: 'No enciende',
     estado: ORDEN_ESTADO.RECIBIDO,
     fechaIngreso: new Date(),
-    fechaEntregaEstimada: null,
-    fechaEntregaReal: null,
+    fechaEntregaEstimada: new Date(),
+    fechaEntregaReal: new Date(),
     createdAt: new Date(),
     updatedAt: new Date(),
   };
@@ -70,7 +69,7 @@ describe('OrdenesService', () => {
       ]),
     };
 
-    fichaTecnicaService = { findOne: jest.fn().mockResolvedValue(mockFicha) };
+    fichaTecnicaService = { findByIds: jest.fn().mockResolvedValue([mockFicha]) };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -106,24 +105,24 @@ describe('OrdenesService', () => {
   describe('create', () => {
     it('should create an order with a unique code and initial event', async () => {
       const result = await service.create({
-        fichaTecnicaId: mockFicha.id,
+        fichaTecnicaIds: [mockFicha.id],
         fallaReportada: 'No enciende',
       });
 
-      expect(fichaTecnicaService.findOne).toHaveBeenCalledWith(mockFicha.id);
+      expect(fichaTecnicaService.findByIds).toHaveBeenCalledWith([mockFicha.id]);
       expect(result.codigo).toMatch(/^STK-[A-HJ-NP-Z2-9]{12}$/);
       expect(result.estado).toBe(ORDEN_ESTADO.RECIBIDO);
       expect(result.trackingUrl).toBe(
-        `http://localhost:5173/seguimiento/${result.codigo}`,
+        `http://localhost:5173/seguimiento?c=${result.codigo}`,
       );
       expect(eventosRepo.save).toHaveBeenCalled();
     });
 
     it('should throw NotFoundException when the ficha tecnica does not exist', async () => {
-      fichaTecnicaService.findOne.mockRejectedValue(new NotFoundException());
+      fichaTecnicaService.findByIds.mockRejectedValue(new NotFoundException());
 
       await expect(
-        service.create({ fichaTecnicaId: 'missing', fallaReportada: 'X' }),
+        service.create({ fichaTecnicaIds: ['missing'], fallaReportada: 'X' }),
       ).rejects.toThrow(NotFoundException);
     });
   });
@@ -133,8 +132,8 @@ describe('OrdenesService', () => {
       const result = await service.getSeguimiento('stk-a7x9k2qfrt4m');
 
       expect(result.codigo).toBe(mockOrden.codigo);
-      expect(result.cliente.nombre).toBe('Carlos Gómez');
-      expect(result.equipo.serial).toBe('SN-LEN-2026-0001');
+      expect(result.clientes).toContain('Carlos Gómez');
+      expect(result.equipos[0].serial).toBe('SN-LEN-2026-0001');
       expect(result.eventos).toHaveLength(1);
     });
 
