@@ -42,7 +42,7 @@ import { EmpleadosModule } from './empleados/empleados.module';
             ? { rejectUnauthorized: process.env.NODE_ENV !== 'production' }
             : false,
         autoLoadEntities: true,
-        synchronize: process.env.NODE_ENV !== 'production',
+        synchronize: true,
       }),
     }),
 

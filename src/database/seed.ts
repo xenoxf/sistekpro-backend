@@ -1,4 +1,3 @@
-import 'dotenv/config';
 import * as bcrypt from 'bcrypt';
 import { DataSource } from 'typeorm';
 import { ROLE } from 'src/users/enums/ROLE.enum';
