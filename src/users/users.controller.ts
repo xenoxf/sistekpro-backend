@@ -16,10 +16,10 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 
-@Roles(ROLE.admin)
 @Controller('users')
+@Roles(ROLE.admin)
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) { }
 
   @Post()
   create(@Body() dto: CreateUserDto) {

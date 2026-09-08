@@ -73,6 +73,8 @@ export class OrdenesController {
     return this.ordenesService.cambiarEstado(id, cambiarEstadoDto);
   }
 
+  // Solo admin elimina. Gerente/mantenimiento: ver + crear + editar.
+  @Roles(ROLE.admin)
   @Delete(':id')
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.ordenesService.remove(id);

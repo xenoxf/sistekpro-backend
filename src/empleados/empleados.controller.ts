@@ -47,6 +47,8 @@ export class EmpleadosController {
     return this.empleadosService.update(id, dto);
   }
 
+  // Solo admin elimina. Gerente: ver + crear + editar.
+  @Roles(ROLE.admin)
   @Delete(':id')
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.empleadosService.remove(id);
