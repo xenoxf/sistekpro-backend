@@ -38,7 +38,7 @@ describe('UsersController', () => {
 
   describe('findAll', () => {
     it('should delegate to the service', async () => {
-      await controller.findAll();
+      await controller.findAll({});
 
       expect(usersService.findAll).toHaveBeenCalled();
     });
