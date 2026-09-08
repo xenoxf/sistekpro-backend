@@ -20,7 +20,7 @@ import { CambiarEstadoDto } from './dto/cambiar-estado.dto';
 import { ORDEN_ESTADO } from './enums/ORDEN_ESTADO.enum';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 
-@Roles(ROLE.admin, ROLE.mantenimiento)
+@Roles(ROLE.admin, ROLE.mantenimiento, ROLE.gerente)
 @Controller('ordenes')
 export class OrdenesController {
   constructor(private readonly ordenesService: OrdenesService) {}

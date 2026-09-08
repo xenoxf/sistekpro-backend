@@ -53,15 +53,22 @@ const SEED_USERS: Array<{
     role: ROLE.mantenimiento,
     departamentoNombre: 'mantenimiento',
   },
+  {
+    name: 'gerente',
+    password: process.env.SEED_GERENTE_PASSWORD!,
+    role: ROLE.gerente,
+    departamentoNombre: 'administracion',
+  },
 ];
 
 async function seed(): Promise<void> {
   if (
     !process.env.SEED_ADMIN_PASSWORD ||
-    !process.env.SEED_MANTENIMIENTO_PASSWORD
+    !process.env.SEED_MANTENIMIENTO_PASSWORD ||
+    !process.env.SEED_GERENTE_PASSWORD
   ) {
     console.error(
-      '[seed] ERROR: SEED_ADMIN_PASSWORD y SEED_MANTENIMIENTO_PASSWORD deben estar definidas en .env',
+      '[seed] ERROR: SEED_ADMIN_PASSWORD, SEED_MANTENIMIENTO_PASSWORD y SEED_GERENTE_PASSWORD deben estar definidas en .env',
     );
     process.exit(1);
   }

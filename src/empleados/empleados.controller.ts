@@ -16,7 +16,7 @@ import { ROLE } from 'src/users/enums/ROLE.enum';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 
-@Roles(ROLE.admin)
+@Roles(ROLE.admin, ROLE.gerente)
 @Controller('empleados')
 export class EmpleadosController {
   constructor(private readonly empleadosService: EmpleadosService) {}

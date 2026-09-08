@@ -16,7 +16,7 @@ import { CreateDepartamentoDto } from './dto/create-departamento.dto';
 import { UpdateDepartamentoDto } from './dto/update-departamento.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 
-@Roles(ROLE.admin)
+@Roles(ROLE.admin, ROLE.gerente)
 @Controller('departamentos')
 export class DepartamentosController {
   constructor(private readonly departamentosService: DepartamentosService) {}
