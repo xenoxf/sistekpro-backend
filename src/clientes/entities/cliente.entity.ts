@@ -28,17 +28,17 @@ export class Cliente {
   @Column({ length: 80 })
   apellido_cliente: string;
 
-  @Column({ length: 120, nullable: true })
+  @Column({ type: 'varchar', length: 120, nullable: true })
   @Index()
   correo_cliente: string | null;
 
-  @Column({ length: 30, nullable: true })
+  @Column({ type: 'varchar', length: 30, nullable: true })
   telefono: string | null;
 
-  @Column({ length: 150, nullable: true })
+  @Column({ type: 'varchar', length: 150, nullable: true })
   dir: string | null;
 
-  @Column({ length: 50, nullable: true })
+  @Column({ type: 'varchar', length: 50, nullable: true })
   tipo_cliente: string | null;
 
   @OneToMany(() => FichaTecnica, (ficha) => ficha.cliente)

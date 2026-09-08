@@ -23,28 +23,28 @@ export class FichaTecnica {
   @Column({ length: 30, nullable: true })
   telefonoCliente?: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   direccionCliente?: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   correoCliente?: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   servicio?: string;
 
   @Column({ type: 'enum', enum: TIPO_EQUIPO, nullable: true })
   tipoEquipo?: TIPO_EQUIPO;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   nombreResponsable?: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   marcaEquipo?: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   modeloEquipo?: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   referencia?: string;
 
   @Column({ type: 'int', nullable: true })
@@ -64,7 +64,7 @@ export class FichaTecnica {
   @Column({ type: 'datetime', nullable: true })
   fechaAdquisicion: Date;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   tipoMonitor: string;
 
   @Column({ unique: true, nullable: true })
@@ -74,10 +74,10 @@ export class FichaTecnica {
   @Column({ type: 'float', nullable: true })
   tamanoPantallaPulgadas: number;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   procesadorMarca: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   procesadorModelo: string;
 
   @Column({ length: 10, nullable: true })
@@ -137,10 +137,10 @@ export class FichaTecnica {
   @Column({ default: false })
   tarjetaRedInalambrica: boolean;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   marcaMouse: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   serialMouse: string;
 
   @Column({ length: 30, nullable: true })
