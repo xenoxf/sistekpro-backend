@@ -39,7 +39,7 @@ import { EmpleadosModule } from './empleados/empleados.module';
         database: configService.get<string>('DB_NAME'),
         ssl:
           configService.get<string>('DB_SSL') === 'true'
-            ? { rejectUnauthorized: process.env.NODE_ENV !== 'production' }
+            ? { rejectUnauthorized: false }
             : false,
         autoLoadEntities: true,
         synchronize: true,
