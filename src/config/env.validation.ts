@@ -5,6 +5,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  MinLength,
   validateSync,
 } from 'class-validator';
 
@@ -34,6 +35,7 @@ export class EnvironmentVariables {
 
   @IsString()
   @IsNotEmpty()
+  @MinLength(32)
   JWT_SECRET: string;
 
   @IsString()
@@ -42,6 +44,7 @@ export class EnvironmentVariables {
 
   @IsString()
   @IsNotEmpty()
+  @MinLength(16)
   API_KEY: string;
 
   @IsNumber()

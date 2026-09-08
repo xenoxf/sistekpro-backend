@@ -2,10 +2,14 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
+  ManyToOne,
   PrimaryGeneratedColumn,
+  RelationId,
   UpdateDateColumn,
 } from 'typeorm';
 import { ROLE } from '../enums/ROLE.enum';
+import { Departamento } from 'src/departamentos/entities/departamento.entity';
 
 @Entity('users')
 export class User {
@@ -21,9 +25,29 @@ export class User {
   @Column({ type: 'enum', enum: ROLE, default: ROLE.mantenimiento })
   role: ROLE;
 
-  @CreateDateColumn({ type: 'timestamptz' })
+  @ManyToOne(() => Departamento, {
+    nullable: true,
+    onDelete: 'SET NULL',
+    eager: true,
+  })
+  @JoinColumn({ name: 'departamentoId' })
+  departamento: Departamento | null;
+
+  @RelationId((user: User) => user.departamento)
+  departamentoId: string | null;
+
+  @CreateDateColumn({
+    type: 'datetime',
+    precision: 6,
+    default: () => 'CURRENT_TIMESTAMP(6)',
+  })
   createdAt: Date;
 
-  @UpdateDateColumn({ type: 'timestamptz' })
+  @UpdateDateColumn({
+    type: 'datetime',
+    precision: 6,
+    default: () => 'CURRENT_TIMESTAMP(6)',
+    onUpdate: 'CURRENT_TIMESTAMP(6)',
+  })
   updatedAt: Date;
 }

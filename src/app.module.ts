@@ -1,5 +1,5 @@
-import { Module, ValidationPipe } from '@nestjs/common';
-import { APP_FILTER, APP_GUARD, APP_PIPE } from '@nestjs/core';
+import { Module } from '@nestjs/common';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule, JwtSignOptions } from '@nestjs/jwt';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
@@ -15,6 +15,9 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { FichaTecnicaModule } from './ficha_tecnica/ficha_tecnica.module';
 import { OrdenesModule } from './ordenes/ordenes.module';
+import { DepartamentosModule } from './departamentos/departamentos.module';
+import { ClientesModule } from './clientes/clientes.module';
+import { EmpleadosModule } from './empleados/empleados.module';
 
 @Module({
   imports: [
@@ -28,7 +31,7 @@ import { OrdenesModule } from './ordenes/ordenes.module';
       inject: [ConfigService],
 
       useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
+        type: 'mysql',
         host: configService.get<string>('DB_HOST'),
         port: configService.get<number>('DB_PORT'),
         username: configService.get<string>('DB_USER'),
@@ -36,10 +39,10 @@ import { OrdenesModule } from './ordenes/ordenes.module';
         database: configService.get<string>('DB_NAME'),
         ssl:
           configService.get<string>('DB_SSL') === 'true'
-            ? { rejectUnauthorized: false }
+            ? { rejectUnauthorized: process.env.NODE_ENV !== 'production' }
             : false,
         autoLoadEntities: true,
-        synchronize: true,
+        synchronize: process.env.NODE_ENV !== 'production',
       }),
     }),
 
@@ -76,6 +79,12 @@ import { OrdenesModule } from './ordenes/ordenes.module';
       inject: [ConfigService],
     }),
 
+    DepartamentosModule,
+
+    ClientesModule,
+
+    EmpleadosModule,
+
     UsersModule,
 
     AuthModule,
@@ -88,15 +97,6 @@ import { OrdenesModule } from './ordenes/ordenes.module';
   controllers: [AppController],
   providers: [
     AppService,
-
-    {
-      provide: APP_PIPE,
-      useValue: new ValidationPipe({
-        whitelist: true,
-        forbidNonWhitelisted: true,
-        transform: true,
-      }),
-    },
 
     {
       provide: APP_FILTER,

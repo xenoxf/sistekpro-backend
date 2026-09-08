@@ -69,7 +69,9 @@ describe('OrdenesService', () => {
       ]),
     };
 
-    fichaTecnicaService = { findByIds: jest.fn().mockResolvedValue([mockFicha]) };
+    fichaTecnicaService = {
+      findByIds: jest.fn().mockResolvedValue([mockFicha]),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -109,7 +111,9 @@ describe('OrdenesService', () => {
         fallaReportada: 'No enciende',
       });
 
-      expect(fichaTecnicaService.findByIds).toHaveBeenCalledWith([mockFicha.id]);
+      expect(fichaTecnicaService.findByIds).toHaveBeenCalledWith([
+        mockFicha.id,
+      ]);
       expect(result.codigo).toMatch(/^STK-[A-HJ-NP-Z2-9]{12}$/);
       expect(result.estado).toBe(ORDEN_ESTADO.RECIBIDO);
       expect(result.trackingUrl).toBe(

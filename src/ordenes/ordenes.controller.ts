@@ -18,6 +18,7 @@ import { UpdateOrdenDto } from './dto/update-orden.dto';
 import { AgregarFichasDto } from './dto/agregar-fichas.dto';
 import { CambiarEstadoDto } from './dto/cambiar-estado.dto';
 import { ORDEN_ESTADO } from './enums/ORDEN_ESTADO.enum';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @Roles(ROLE.admin, ROLE.mantenimiento)
 @Controller('ordenes')
@@ -30,14 +31,17 @@ export class OrdenesController {
   }
 
   @Get()
-  findAll(@Query('estado') estado?: ORDEN_ESTADO) {
+  findAll(
+    @Query() pagination: PaginationDto,
+    @Query('estado') estado?: ORDEN_ESTADO,
+  ) {
     if (estado && !Object.values(ORDEN_ESTADO).includes(estado)) {
       throw new BadRequestException(
         `estado inválido. Valores permitidos: ${Object.values(ORDEN_ESTADO).join(', ')}`,
       );
     }
 
-    return this.ordenesService.findAll(estado);
+    return this.ordenesService.findAll(pagination, estado);
   }
 
   @Get(':id')

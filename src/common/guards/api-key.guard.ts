@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
+import { timingSafeEqual } from 'crypto';
 import { Request } from 'express';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 
@@ -40,7 +41,19 @@ export class ApiKeyGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<Request>();
     const apiKey = request.header(API_KEY_HEADER);
 
-    if (!apiKey || apiKey !== expectedApiKey) {
+    if (!apiKey) {
+      throw new UnauthorizedException(
+        'API key inválida o faltante: agrega el header x-api-key',
+      );
+    }
+
+    const expectedBuffer = Buffer.from(expectedApiKey);
+    const providedBuffer = Buffer.from(apiKey);
+
+    if (
+      expectedBuffer.length !== providedBuffer.length ||
+      !timingSafeEqual(expectedBuffer, providedBuffer)
+    ) {
       throw new UnauthorizedException(
         'API key inválida o faltante: agrega el header x-api-key',
       );

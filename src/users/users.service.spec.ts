@@ -3,6 +3,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { NotFoundException } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { User } from './entities/user.entity';
+import { Departamento } from 'src/departamentos/entities/departamento.entity';
 import { ROLE } from './enums/ROLE.enum';
 
 jest.mock('bcrypt', () => ({
@@ -15,7 +16,9 @@ describe('UsersService', () => {
     create: jest.Mock;
     save: jest.Mock;
     find: jest.Mock;
+    findAndCount: jest.Mock;
     findOneBy: jest.Mock;
+    findOne: jest.Mock;
     createQueryBuilder: jest.Mock;
     remove: jest.Mock;
   };
@@ -25,6 +28,8 @@ describe('UsersService', () => {
     name: 'testuser',
     password: 'hashed-password',
     role: ROLE.mantenimiento,
+    departamento: null,
+    departamentoId: null,
     createdAt: new Date(),
     updatedAt: new Date(),
   };
@@ -34,13 +39,21 @@ describe('UsersService', () => {
       create: jest.fn().mockReturnValue(mockUser),
       save: jest.fn().mockResolvedValue(mockUser),
       find: jest.fn().mockResolvedValue([mockUser]),
+      findAndCount: jest.fn().mockResolvedValue([[mockUser], 1]),
       findOneBy: jest.fn().mockResolvedValue(null),
+      findOne: jest.fn().mockResolvedValue(mockUser),
       createQueryBuilder: jest.fn().mockReturnValue({
         addSelect: jest.fn().mockReturnThis(),
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
         getOne: jest.fn().mockResolvedValue(null),
       }),
       remove: jest.fn().mockResolvedValue(mockUser),
+    };
+
+    const departamentoRepository = {
+      findOneBy: jest.fn().mockResolvedValue(null),
+      findOne: jest.fn().mockResolvedValue(null),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -49,6 +62,10 @@ describe('UsersService', () => {
         {
           provide: getRepositoryToken(User),
           useValue: userRepository,
+        },
+        {
+          provide: getRepositoryToken(Departamento),
+          useValue: departamentoRepository,
         },
       ],
     }).compile();
@@ -62,15 +79,16 @@ describe('UsersService', () => {
 
   describe('findAll', () => {
     it('should return all users', async () => {
-      const result = await service.findAll();
+      const result = await service.findAll({});
 
-      expect(result).toEqual([mockUser]);
-      expect(userRepository.find).toHaveBeenCalled();
+      expect(result.data).toEqual([mockUser]);
+      expect(userRepository.findAndCount).toHaveBeenCalled();
     });
   });
 
   describe('findById', () => {
     it('should return the user when found', async () => {
+      userRepository.findOne.mockResolvedValue(mockUser);
       userRepository.findOneBy.mockResolvedValue(mockUser);
 
       const result = await service.findById(mockUser.id);
@@ -79,6 +97,8 @@ describe('UsersService', () => {
     });
 
     it('should throw NotFoundException when the user does not exist', async () => {
+      userRepository.findOne.mockResolvedValue(null);
+      userRepository.findOneBy.mockResolvedValue(null);
       await expect(service.findById('missing-id')).rejects.toThrow(
         NotFoundException,
       );
@@ -87,6 +107,7 @@ describe('UsersService', () => {
 
   describe('findByName', () => {
     it('should return the user by name', async () => {
+      userRepository.findOne.mockResolvedValue(mockUser);
       userRepository.findOneBy.mockResolvedValue(mockUser);
 
       const result = await service.findByName('testuser');
@@ -99,6 +120,7 @@ describe('UsersService', () => {
     it('should add the password select and return the user', async () => {
       userRepository.createQueryBuilder.mockReturnValue({
         addSelect: jest.fn().mockReturnThis(),
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
         getOne: jest.fn().mockResolvedValue(mockUser),
       });
@@ -111,6 +133,7 @@ describe('UsersService', () => {
 
   describe('remove', () => {
     it('should remove the user when found', async () => {
+      userRepository.findOne.mockResolvedValue(mockUser);
       userRepository.findOneBy.mockResolvedValue(mockUser);
 
       const result = await service.remove(mockUser.id);
@@ -120,6 +143,8 @@ describe('UsersService', () => {
     });
 
     it('should throw NotFoundException when the user does not exist', async () => {
+      userRepository.findOne.mockResolvedValue(null);
+      userRepository.findOneBy.mockResolvedValue(null);
       await expect(service.remove('missing-id')).rejects.toThrow(
         NotFoundException,
       );

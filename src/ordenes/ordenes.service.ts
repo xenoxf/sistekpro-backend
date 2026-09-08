@@ -11,6 +11,7 @@ import { CambiarEstadoDto } from './dto/cambiar-estado.dto';
 import { OrdenServicio } from './entities/orden-servicio.entity';
 import { SeguimientoEvento } from './entities/seguimiento-evento.entity';
 import { ORDEN_ESTADO } from './enums/ORDEN_ESTADO.enum';
+import { PaginationDto, PaginatedResult } from 'src/common/dto/pagination.dto';
 
 const CODIGO_PREFIJO = 'STK-';
 const CODIGO_LONGITUD = 12;
@@ -52,7 +53,9 @@ export class OrdenesService {
   async create(
     dto: CreateOrdenDto,
   ): Promise<OrdenServicio & { trackingUrl: string | null }> {
-    const fichas = await this.fichaTecnicaService.findByIds(dto.fichaTecnicaIds);
+    const fichas = await this.fichaTecnicaService.findByIds(
+      dto.fichaTecnicaIds,
+    );
 
     const orden = this.ordenesRepo.create({
       fichasTecnicas: fichas,
@@ -84,7 +87,9 @@ export class OrdenesService {
     dto: AgregarFichasDto,
   ): Promise<OrdenServicio> {
     const orden = await this.findOne(id);
-    const nuevas = await this.fichaTecnicaService.findByIds(dto.fichaTecnicaIds);
+    const nuevas = await this.fichaTecnicaService.findByIds(
+      dto.fichaTecnicaIds,
+    );
 
     const existentes = new Set(orden.fichasTecnicas.map((f) => f.id));
     for (const ficha of nuevas) {
@@ -94,14 +99,28 @@ export class OrdenesService {
     return this.ordenesRepo.save(orden);
   }
 
-  async findAll(estado?: ORDEN_ESTADO): Promise<OrdenServicio[]> {
+  async findAll(
+    pagination: PaginationDto,
+    estado?: ORDEN_ESTADO,
+  ): Promise<PaginatedResult<OrdenServicio>> {
+    const page = pagination.page ?? 1;
+    const limit = pagination.limit ?? 20;
+    const skip = (page - 1) * limit;
+
     const where = estado ? { estado } : {};
 
-    return this.ordenesRepo.find({
+    const [data, total] = await this.ordenesRepo.findAndCount({
       where,
       relations: { fichasTecnicas: true },
       order: { createdAt: 'DESC' },
+      skip,
+      take: limit,
     });
+
+    return {
+      data,
+      meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+    };
   }
 
   async findOne(id: string): Promise<OrdenServicio> {
@@ -191,10 +210,10 @@ export class OrdenesService {
       trackingUrl: this.buildTrackingUrl(orden.codigo),
       clientes,
       equipos: orden.fichasTecnicas.map((f) => ({
-        tipo: f.tipoEquipo ?? "",
-        marca: f.marcaEquipo ?? "",
-        modelo: f.modeloEquipo ?? "",
-        serial: f.serialEquipo ?? "",
+        tipo: f.tipoEquipo ?? '',
+        marca: f.marcaEquipo ?? '',
+        modelo: f.modeloEquipo ?? '',
+        serial: f.serialEquipo ?? '',
       })),
       eventos: eventos.map((e) => ({
         titulo: e.titulo,

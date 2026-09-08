@@ -30,7 +30,21 @@ export class RolesGuard implements CanActivate {
       throw new UnauthorizedException('Usuario no autenticado');
     }
 
-    const hasRole = requiredRoles.some((role) => request.user!.role === role);
+    // Admin (root) tiene acceso total
+    if (request.user.role === ROLE.admin) {
+      return true;
+    }
+
+    const hasRole = requiredRoles.some((role) => {
+      // Coincidencia directa por role
+      if (request.user!.role === role) return true;
+      // Coincidencia por departamento: si el usuario pertenece a un departamento
+      // cuyo nombre coincide con el rol requerido (ej: departamento "mantenimiento" => role "mantenimiento")
+      const depNombre = request.user!.departamentoNombre?.toLowerCase().trim();
+      if (depNombre && depNombre === String(role).toLowerCase().trim())
+        return true;
+      return false;
+    });
 
     if (!hasRole) {
       throw new ForbiddenException(

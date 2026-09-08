@@ -13,6 +13,8 @@ export interface AuthResponse {
     id: string;
     name: string;
     role: ROLE;
+    departamentoId: string | null;
+    departamentoNombre: string | null;
   };
 }
 
@@ -38,6 +40,9 @@ export class AuthService {
       sub: user.id,
       name: user.name,
       role: user.role,
+      departamentoId:
+        user.departamentoId ?? user.departamento?.id_departamento ?? null,
+      departamentoNombre: user.departamento?.nombre_departamento ?? null,
     };
 
     return this.jwtService.sign(payload);
@@ -50,6 +55,9 @@ export class AuthService {
         id: user.id,
         name: user.name,
         role: user.role,
+        departamentoId:
+          user.departamentoId ?? user.departamento?.id_departamento ?? null,
+        departamentoNombre: user.departamento?.nombre_departamento ?? null,
       },
     };
   }

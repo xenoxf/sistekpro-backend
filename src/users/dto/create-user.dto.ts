@@ -8,24 +8,22 @@ import {
 } from 'class-validator';
 import { ROLE } from '../enums/ROLE.enum';
 
-export class UpdateUserDto {
-  @IsOptional()
+export class CreateUserDto {
   @IsString()
   @Length(3, 50)
   @IsNotEmpty()
-  name?: string;
+  name: string;
 
-  @IsOptional()
   @IsString()
   @Length(5, 50)
   @IsNotEmpty()
-  password?: string;
+  password: string;
 
-  @IsOptional()
   @IsEnum(ROLE)
+  @IsOptional()
   role?: ROLE;
 
   @IsOptional()
   @IsUUID()
-  departamentoId?: string | null;
+  departamentoId?: string;
 }

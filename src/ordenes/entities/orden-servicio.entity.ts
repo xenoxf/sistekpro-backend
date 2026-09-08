@@ -28,20 +28,30 @@ export class OrdenServicio {
   fallaReportada: string;
 
   @Column({ type: 'enum', enum: ORDEN_ESTADO, default: ORDEN_ESTADO.RECIBIDO })
+  @Index()
   estado: ORDEN_ESTADO;
 
-  @Column({ type: 'timestamptz', default: () => 'now()' })
+  @Column({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
   fechaIngreso: Date;
 
-  @Column({ type: 'timestamptz', nullable: true })
+  @Column({ type: 'datetime', nullable: true })
   fechaEntregaEstimada: Date;
 
-  @Column({ type: 'timestamptz', nullable: true })
+  @Column({ type: 'datetime', nullable: true })
   fechaEntregaReal: Date;
 
-  @CreateDateColumn({ type: 'timestamptz' })
+  @CreateDateColumn({
+    type: 'datetime',
+    precision: 6,
+    default: () => 'CURRENT_TIMESTAMP(6)',
+  })
   createdAt: Date;
 
-  @UpdateDateColumn({ type: 'timestamptz' })
+  @UpdateDateColumn({
+    type: 'datetime',
+    precision: 6,
+    default: () => 'CURRENT_TIMESTAMP(6)',
+    onUpdate: 'CURRENT_TIMESTAMP(6)',
+  })
   updatedAt: Date;
 }

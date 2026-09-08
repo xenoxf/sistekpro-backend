@@ -3,10 +3,14 @@ import {
   CreateDateColumn,
   Entity,
   Index,
+  JoinColumn,
+  ManyToOne,
   PrimaryGeneratedColumn,
+  RelationId,
   UpdateDateColumn,
 } from 'typeorm';
 import { TIPO_EQUIPO } from '../enums/TIPO_EQUIPO.enum';
+import { Cliente } from 'src/clientes/entities/cliente.entity';
 
 @Entity('ficha_tecnica')
 export class FichaTecnica {
@@ -46,7 +50,18 @@ export class FichaTecnica {
   @Column({ type: 'int', nullable: true })
   tiempoGarantiaMeses: number;
 
-  @Column({ type: 'timestamptz', nullable: true })
+  @ManyToOne(() => Cliente, (cliente) => cliente.fichasTecnicas, {
+    nullable: true,
+    onDelete: 'SET NULL',
+    eager: false,
+  })
+  @JoinColumn({ name: 'id_cliente' })
+  cliente: Cliente | null;
+
+  @RelationId((ficha: FichaTecnica) => ficha.cliente)
+  id_cliente: string | null;
+
+  @Column({ type: 'datetime', nullable: true })
   fechaAdquisicion: Date;
 
   @Column({ nullable: true })
@@ -134,12 +149,21 @@ export class FichaTecnica {
   @Column({ type: 'text', nullable: true })
   observaciones: string;
 
-  @Column({ type: 'timestamptz', nullable: true })
+  @Column({ type: 'datetime', nullable: true })
   fechaRealizacion: Date;
 
-  @CreateDateColumn({ type: 'timestamptz' })
+  @CreateDateColumn({
+    type: 'datetime',
+    precision: 6,
+    default: () => 'CURRENT_TIMESTAMP(6)',
+  })
   createdAt: Date;
 
-  @UpdateDateColumn({ type: 'timestamptz' })
+  @UpdateDateColumn({
+    type: 'datetime',
+    precision: 6,
+    default: () => 'CURRENT_TIMESTAMP(6)',
+    onUpdate: 'CURRENT_TIMESTAMP(6)',
+  })
   updatedAt: Date;
 }

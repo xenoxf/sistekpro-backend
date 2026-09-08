@@ -4,11 +4,13 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsWhere, ILike, In, Repository } from 'typeorm';
+import { FindOptionsWhere, In, Like, Repository } from 'typeorm';
 import { CreateFichaTecnicaDto } from './dto/create-ficha_tecnica.dto';
 import { UpdateFichaTecnicaDto } from './dto/update-ficha_tecnica.dto';
 import { FichaTecnica } from './entities/ficha_tecnica.entity';
+import { Cliente } from 'src/clientes/entities/cliente.entity';
 import { TIPO_EQUIPO } from './enums/TIPO_EQUIPO.enum';
+import { PaginationDto, PaginatedResult } from 'src/common/dto/pagination.dto';
 
 const MS_POR_DIA = 1000 * 60 * 60 * 24;
 
@@ -24,6 +26,8 @@ export class FichaTecnicaService {
   constructor(
     @InjectRepository(FichaTecnica)
     private readonly fichaTecnicaRepo: Repository<FichaTecnica>,
+    @InjectRepository(Cliente)
+    private readonly clienteRepo: Repository<Cliente>,
   ) {}
 
   async create(dto: CreateFichaTecnicaDto): Promise<FichaTecnica> {
@@ -31,10 +35,19 @@ export class FichaTecnicaService {
       await this.assertSerialDisponible(dto.serialEquipo);
     }
 
+    let cliente: Cliente | null = null;
+    if (dto.id_cliente) {
+      cliente = await this.clienteRepo.findOneBy({
+        id_cliente: dto.id_cliente,
+      });
+      if (!cliente) throw new NotFoundException('Cliente no encontrado');
+    }
+
     const { fechaAdquisicion, fechaRealizacion, ...datos } = dto;
 
     const ficha = this.fichaTecnicaRepo.create({
       ...datos,
+      cliente: cliente ?? null,
       fechaAdquisicion: fechaAdquisicion
         ? new Date(fechaAdquisicion)
         : undefined,
@@ -47,24 +60,43 @@ export class FichaTecnicaService {
   }
 
   async findAll(
+    pagination: PaginationDto,
     serial?: string,
     tipoEquipo?: TIPO_EQUIPO,
-  ): Promise<FichaTecnica[]> {
+  ): Promise<PaginatedResult<FichaTecnica>> {
+    const page = pagination.page ?? 1;
+    const limit = pagination.limit ?? 20;
+    const skip = (page - 1) * limit;
+
     const where: FindOptionsWhere<FichaTecnica> = {};
 
     if (serial) {
-      where.serialEquipo = ILike(`%${serial}%`);
+      where.serialEquipo = Like(`%${serial}%`);
     }
 
     if (tipoEquipo) {
       where.tipoEquipo = tipoEquipo;
     }
 
-    return this.fichaTecnicaRepo.find({ where, order: { createdAt: 'DESC' } });
+    const [data, total] = await this.fichaTecnicaRepo.findAndCount({
+      where,
+      order: { createdAt: 'DESC' },
+      relations: { cliente: true },
+      skip,
+      take: limit,
+    });
+
+    return {
+      data,
+      meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+    };
   }
 
   async findOne(id: string): Promise<FichaTecnica> {
-    const ficha = await this.fichaTecnicaRepo.findOneBy({ id });
+    const ficha = await this.fichaTecnicaRepo.findOne({
+      where: { id },
+      relations: { cliente: true },
+    });
 
     if (!ficha) {
       throw new NotFoundException('Ficha técnica no encontrada');
@@ -98,7 +130,17 @@ export class FichaTecnicaService {
       await this.assertSerialDisponible(dto.serialEquipo);
     }
 
-    const { fechaAdquisicion, fechaRealizacion, ...datos } = dto;
+    const { fechaAdquisicion, fechaRealizacion, id_cliente, ...datos } = dto;
+
+    if (id_cliente !== undefined) {
+      if (id_cliente === null) {
+        ficha.cliente = null;
+      } else {
+        const cliente = await this.clienteRepo.findOneBy({ id_cliente });
+        if (!cliente) throw new NotFoundException('Cliente no encontrado');
+        ficha.cliente = cliente;
+      }
+    }
 
     Object.assign(ficha, {
       ...datos,

@@ -14,6 +14,7 @@ import { FichaTecnicaService } from './ficha_tecnica.service';
 import { CreateFichaTecnicaDto } from './dto/create-ficha_tecnica.dto';
 import { UpdateFichaTecnicaDto } from './dto/update-ficha_tecnica.dto';
 import { TIPO_EQUIPO } from './enums/TIPO_EQUIPO.enum';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @Controller('ficha-tecnica')
 export class FichaTecnicaController {
@@ -26,6 +27,7 @@ export class FichaTecnicaController {
 
   @Get()
   findAll(
+    @Query() pagination: PaginationDto,
     @Query('serial') serial?: string,
     @Query('tipoEquipo') tipoEquipo?: TIPO_EQUIPO,
   ) {
@@ -36,6 +38,7 @@ export class FichaTecnicaController {
     }
 
     return this.fichaTecnicaService.findAll(
+      pagination,
       serial?.trim() || undefined,
       tipoEquipo,
     );

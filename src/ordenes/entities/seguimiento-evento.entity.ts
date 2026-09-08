@@ -25,6 +25,10 @@ export class SeguimientoEvento {
   @Column({ type: 'text', nullable: true })
   descripcion: string;
 
-  @CreateDateColumn({ type: 'timestamptz' })
+  @CreateDateColumn({
+    type: 'datetime',
+    precision: 6,
+    default: () => 'CURRENT_TIMESTAMP(6)',
+  })
   createdAt: Date;
 }

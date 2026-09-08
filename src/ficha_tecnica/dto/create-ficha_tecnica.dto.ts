@@ -6,6 +6,7 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  IsUUID,
   Length,
   Max,
   Min,
@@ -13,10 +14,15 @@ import {
 import { TIPO_EQUIPO } from '../enums/TIPO_EQUIPO.enum';
 
 /**
- * El único dato obligatorio de una ficha técnica es el nombre del cliente.
+ * El único dato obligatorio de una ficha técnica es el nombre del cliente
+ * o el id_cliente si el cliente ya existe en la tabla clientes.
  * Todo lo demás es opcional; los campos que llegan vacíos se ignoran.
  */
 export class CreateFichaTecnicaDto {
+  @IsOptional()
+  @IsUUID()
+  id_cliente?: string;
+
   @IsString()
   @Length(3, 100)
   @IsNotEmpty()

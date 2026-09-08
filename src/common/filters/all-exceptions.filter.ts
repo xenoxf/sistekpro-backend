@@ -18,7 +18,7 @@ interface ErrorResponseBody {
   timestamp: string;
 }
 
-const POSTGRES_UNIQUE_VIOLATION = '23505';
+const MYSQL_DUPLICATE_ENTRY = 'ER_DUP_ENTRY';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -76,9 +76,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     if (exception instanceof QueryFailedError) {
       const driverError = exception.driverError as
-        { code?: string; detail?: string } | undefined;
+        { code?: string; message?: string } | undefined;
 
-      if (driverError?.code === POSTGRES_UNIQUE_VIOLATION) {
+      if (
+        driverError?.code === MYSQL_DUPLICATE_ENTRY ||
+        driverError?.message?.includes('Duplicate entry')
+      ) {
         return {
           statusCode: HttpStatus.CONFLICT,
           message: 'El registro ya existe: violación de unicidad',

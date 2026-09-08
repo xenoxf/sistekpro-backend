@@ -6,8 +6,12 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
+import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
+import { Departamento } from 'src/departamentos/entities/departamento.entity';
+import { ROLE } from './enums/ROLE.enum';
+import { PaginationDto, PaginatedResult } from 'src/common/dto/pagination.dto';
 
 const BCRYPT_SALT_ROUNDS = 10;
 
@@ -16,16 +20,60 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(Departamento)
+    private readonly departamentoRepo: Repository<Departamento>,
   ) {}
 
-  async findAll(): Promise<User[]> {
-    return this.userRepository.find({
-      order: { createdAt: 'DESC' },
+  async create(dto: CreateUserDto): Promise<User> {
+    await this.assertNameAvailable(dto.name);
+
+    let departamento: Departamento | null = null;
+    if (dto.departamentoId) {
+      departamento = await this.departamentoRepo.findOneBy({
+        id_departamento: dto.departamentoId,
+      });
+      if (!departamento) {
+        throw new NotFoundException('Departamento no encontrado');
+      }
+    } else if (dto.role && dto.role !== ROLE.admin) {
+      // Para roles no-admin se recomienda asignar departamento (mantenimiento => departamento mantenimiento)
+      // No es obligatorio estricto para no romper compatibilidad, pero se valida si se desea exigir
+    }
+
+    const user = this.userRepository.create({
+      name: dto.name,
+      password: await bcrypt.hash(dto.password, BCRYPT_SALT_ROUNDS),
+      role: dto.role ?? ROLE.mantenimiento,
+      departamento: departamento,
     });
+
+    await this.userRepository.save(user);
+    return this.findById(user.id);
+  }
+
+  async findAll(pagination: PaginationDto): Promise<PaginatedResult<User>> {
+    const page = pagination.page ?? 1;
+    const limit = pagination.limit ?? 20;
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await this.userRepository.findAndCount({
+      order: { createdAt: 'DESC' },
+      relations: { departamento: true },
+      skip,
+      take: limit,
+    });
+
+    return {
+      data,
+      meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+    };
   }
 
   async findById(id: string): Promise<User> {
-    const user = await this.userRepository.findOneBy({ id });
+    const user = await this.userRepository.findOne({
+      where: { id },
+      relations: { departamento: true },
+    });
 
     if (!user) {
       throw new NotFoundException('Usuario no encontrado');
@@ -35,12 +83,16 @@ export class UsersService {
   }
 
   async findByName(name: string): Promise<User | null> {
-    return this.userRepository.findOneBy({ name });
+    return this.userRepository.findOne({
+      where: { name },
+      relations: { departamento: true },
+    });
   }
 
   async findByNameWithPassword(name: string): Promise<User | null> {
     return this.userRepository
       .createQueryBuilder('user')
+      .leftJoinAndSelect('user.departamento', 'departamento')
       .addSelect('user.password')
       .where('user.name = :name', { name })
       .getOne();
@@ -57,10 +109,44 @@ export class UsersService {
       dto.password = await bcrypt.hash(dto.password, BCRYPT_SALT_ROUNDS);
     }
 
-    Object.assign(user, dto);
+    if (dto.departamentoId !== undefined) {
+      if (dto.departamentoId === null) {
+        user.departamento = null;
+      } else {
+        const dep = await this.departamentoRepo.findOneBy({
+          id_departamento: dto.departamentoId,
+        });
+        if (!dep) throw new NotFoundException('Departamento no encontrado');
+        user.departamento = dep;
+      }
+    }
+
+    if (dto.role) {
+      user.role = dto.role;
+    }
+    if (dto.name) user.name = dto.name;
+    if (dto.password) user.password = dto.password;
 
     await this.userRepository.save(user);
 
+    return this.findById(user.id);
+  }
+
+  async asignarDepartamento(
+    userId: string,
+    departamentoId: string | null,
+  ): Promise<User> {
+    const user = await this.findById(userId);
+    if (departamentoId === null) {
+      user.departamento = null;
+    } else {
+      const dep = await this.departamentoRepo.findOneBy({
+        id_departamento: departamentoId,
+      });
+      if (!dep) throw new NotFoundException('Departamento no encontrado');
+      user.departamento = dep;
+    }
+    await this.userRepository.save(user);
     return this.findById(user.id);
   }
 
