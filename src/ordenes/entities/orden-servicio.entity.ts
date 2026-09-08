@@ -17,7 +17,6 @@ export class OrdenServicio {
   id: string;
 
   @Column({ unique: true, length: 20 })
-  @Index()
   codigo: string;
 
   @ManyToMany(() => FichaTecnica)

@@ -2,7 +2,6 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -30,7 +29,6 @@ export class Empleado {
   apellido_empleado: string;
 
   @Column({ length: 120, unique: true })
-  @Index()
   correo_empleado: string;
 
   @Column({ length: 80 })

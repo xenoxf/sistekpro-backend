@@ -2,7 +2,6 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -68,7 +67,6 @@ export class FichaTecnica {
   tipoMonitor: string;
 
   @Column({ unique: true, nullable: true })
-  @Index()
   serialEquipo?: string;
 
   @Column({ type: 'float', nullable: true })
