@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -25,6 +26,11 @@ export class UsersService {
   ) {}
 
   async create(dto: CreateUserDto): Promise<User> {
+    if (dto.role === ROLE.admin) {
+      throw new ForbiddenException(
+        'No se permite crear usuarios con rol admin. Solo puede existir un admin.',
+      );
+    }
     await this.assertNameAvailable(dto.name);
 
     let departamento: Departamento | null = null;
@@ -35,9 +41,6 @@ export class UsersService {
       if (!departamento) {
         throw new NotFoundException('Departamento no encontrado');
       }
-    } else if (dto.role && dto.role !== ROLE.admin) {
-      // Para roles no-admin se recomienda asignar departamento (mantenimiento => departamento mantenimiento)
-      // No es obligatorio estricto para no romper compatibilidad, pero se valida si se desea exigir
     }
 
     const user = this.userRepository.create({
@@ -122,6 +125,11 @@ export class UsersService {
     }
 
     if (dto.role) {
+      if (dto.role === ROLE.admin) {
+        throw new ForbiddenException(
+          'No se permite asignar el rol admin.',
+        );
+      }
       user.role = dto.role;
     }
     if (dto.name) user.name = dto.name;

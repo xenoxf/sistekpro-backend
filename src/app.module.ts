@@ -18,6 +18,7 @@ import { OrdenesModule } from './ordenes/ordenes.module';
 import { DepartamentosModule } from './departamentos/departamentos.module';
 import { ClientesModule } from './clientes/clientes.module';
 import { EmpleadosModule } from './empleados/empleados.module';
+import { LeadsModule } from './leads/leads.module';
 
 @Module({
   imports: [
@@ -84,6 +85,8 @@ import { EmpleadosModule } from './empleados/empleados.module';
     ClientesModule,
 
     EmpleadosModule,
+
+    LeadsModule,
 
     UsersModule,
 
