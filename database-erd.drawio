@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-09-11T20:00:00.000Z" agent="opencode" version="24.2.2" type="device">
+  <diagram name="ERD Base de Datos" id="erd-1">
+    <mxGraphModel dx="0" dy="0" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <!-- Nota actualización -->
+        <mxCell id="nota-2026-09-11" value="&lt;b&gt;Actualizado 2026-09-11&lt;/b&gt;&lt;br/&gt;• FichaTécnica ↔ Cliente 1:N via &lt;b&gt;ficha_tecnica.id_cliente UUID NULL FK → clientes.id_cliente ON DELETE SET NULL&lt;/b&gt;&lt;br/&gt;• GET /clientes ahora soporta &lt;b&gt;?search=&lt;/b&gt; (LIKE nombre/apellido/correo/telefono) para buscador del form&lt;br/&gt;• Form Ficha: seleccionar cliente existente (bloquea teléfono/dir/correo), &lt;b&gt;+ Nuevo cliente&lt;/b&gt; inline (form completo), o ficha huérfana con nombre manual&lt;br/&gt;• From Clientes: &lt;b&gt;Crear ficha para este cliente&lt;/b&gt; pre-selecciona cliente en FichasSection (evento + localStorage)&lt;br/&gt;• Fix: CreateFichaTecnicaDto Transform ''→undefined para id_cliente/tipoEquipo/fechas evita 'property tipoEquipo should not exist'&lt;br/&gt;&lt;i&gt;Ficha huérfana permitida; si vinculada, teléfono/dirección/correo vienen del cliente (bloqueados).&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF9C4;strokeColor=#F9A825;strokeWidth=1;verticalAlign=top;align=left;spacing=8;fontSize=11;" vertex="1" parent="1">
+          <geometry as="geometry" x="20" y="360" width="360" height="110" />
+        </mxCell>
+        <!-- Departamentos -->
+        <mxCell id="departamentos" value="&lt;b&gt;departamentos&lt;/b&gt;&lt;br/&gt;&lt;table border='1' cellpadding='2' cellspacing='0' width='100%'&gt;&lt;tr&gt;&lt;td&gt;PK &lt;b&gt;id_departamento&lt;/b&gt; UUID&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;nombre_departamento VARCHAR(100) UNIQUE&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;descripcion TEXT NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;createdAt DATETIME(6)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;updatedAt DATETIME(6)&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1;" vertex="1" parent="1">
+          <geometry as="geometry" x="20" y="20" width="180" height="110" />
+        </mxCell>
+        <!-- Users -->
+        <mxCell id="users" value="&lt;b&gt;users&lt;/b&gt;&lt;br/&gt;&lt;table border='1' cellpadding='2' cellspacing='0' width='100%'&gt;&lt;tr&gt;&lt;td&gt;PK &lt;b&gt;id&lt;/b&gt; UUID&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;name VARCHAR UNIQUE&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;password VARCHAR (select:false)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;role ENUM(admin,gerente,mantenimiento)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;FK &lt;i&gt;departamentoId&lt;/i&gt; UUID NULL → departamentos&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;createdAt DATETIME(6)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;updatedAt DATETIME(6)&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1;" vertex="1" parent="1">
+          <geometry as="geometry" x="20" y="145" width="180" height="150" />
+        </mxCell>
+        <!-- Clientes -->
+        <mxCell id="clientes" value="&lt;b&gt;clientes&lt;/b&gt;&lt;br/&gt;&lt;table border='1' cellpadding='2' cellspacing='0' width='100%'&gt;&lt;tr&gt;&lt;td style='background:#E8F5E9;'&gt;PK &lt;b&gt;id_cliente&lt;/b&gt; UUID&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;nombre_cliente VARCHAR(80)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;apellido_cliente VARCHAR(80)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;correo_cliente VARCHAR(120) NULL UNIQUE* &lt;i&gt;(validado 409)&lt;/i&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;telefono VARCHAR(30) NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;dir VARCHAR(150) NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;tipo_cliente VARCHAR(50) NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;createdAt DATETIME(6)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;updatedAt DATETIME(6)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style='font-size:10px;color:#2E7D32;'&gt;↗ 1:N fichasTecnicas&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2E7D32;strokeWidth=1.5;" vertex="1" parent="1">
+          <geometry as="geometry" x="230" y="20" width="190" height="200" />
+        </mxCell>
+        <!-- Empleados -->
+        <mxCell id="empleados" value="&lt;b&gt;empleados&lt;/b&gt;&lt;br/&gt;&lt;table border='1' cellpadding='2' cellspacing='0' width='100%'&gt;&lt;tr&gt;&lt;td&gt;PK &lt;b&gt;id_empleado&lt;/b&gt; UUID (&lt;i&gt;alias id&lt;/i&gt;)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;nombre_empleado VARCHAR(80)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;apellido_empleado VARCHAR(80)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;correo_empleado VARCHAR(120) UNIQUE&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;cargo VARCHAR(80)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;FK &lt;i&gt;id_departamento&lt;/i&gt; UUID → departamentos (RESTRICT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;createdAt DATETIME(6)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;updatedAt DATETIME(6)&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1;" vertex="1" parent="1">
+          <geometry as="geometry" x="230" y="240" width="190" height="170" />
+        </mxCell>
+        <!-- Ordenes Servicio -->
+        <mxCell id="ordenes_servicio" value="&lt;b&gt;ordenes_servicio&lt;/b&gt;&lt;br/&gt;&lt;table border='1' cellpadding='2' cellspacing='0' width='100%'&gt;&lt;tr&gt;&lt;td&gt;PK &lt;b&gt;id&lt;/b&gt; UUID&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;codigo VARCHAR(20) UNIQUE&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;fallaReportada TEXT&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;estado ENUM (recibido, en_proceso...)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;fechaIngreso DATETIME&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;fechaEntregaEstimada DATETIME NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;fechaEntregaReal DATETIME NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;M:N &lt;i&gt;fichasTecnicas&lt;/i&gt; → ficha_tecnica (JoinTable)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;createdAt DATETIME(6)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;updatedAt DATETIME(6)&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1;" vertex="1" parent="1">
+          <geometry as="geometry" x="450" y="20" width="210" height="200" />
+        </mxCell>
+        <!-- Seguimiento Eventos -->
+        <mxCell id="seguimiento_eventos" value="&lt;b&gt;seguimiento_eventos&lt;/b&gt;&lt;br/&gt;&lt;table border='1' cellpadding='2' cellspacing='0' width='100%'&gt;&lt;tr&gt;&lt;td&gt;PK &lt;b&gt;id&lt;/b&gt; UUID&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;FK &lt;i&gt;ordenId&lt;/i&gt; UUID → ordenes_servicio (CASCADE)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;titulo VARCHAR(150)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;descripcion TEXT NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;createdAt DATETIME(6) &lt;i&gt;(Index orden+createdAt)&lt;/i&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1;" vertex="1" parent="1">
+          <geometry as="geometry" x="450" y="235" width="210" height="115" />
+        </mxCell>
+        <!-- Leads -->
+        <mxCell id="leads" value="&lt;b&gt;leads&lt;/b&gt;&lt;br/&gt;&lt;table border='1' cellpadding='2' cellspacing='0' width='100%'&gt;&lt;tr&gt;&lt;td&gt;PK &lt;b&gt;id&lt;/b&gt; UUID&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;nombre VARCHAR(80)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;email VARCHAR(120)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;numero VARCHAR(30)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;servicio VARCHAR(50)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;message TEXT&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;createdAt DATETIME(6)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;updatedAt DATETIME(6)&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1;" vertex="1" parent="1">
+          <geometry as="geometry" x="690" y="20" width="170" height="155" />
+        </mxCell>
+        <!-- Ficha Tecnica - CORREGIDA -->
+        <mxCell id="ficha_tecnica" value="&lt;b&gt;ficha_tecnica&lt;/b&gt; &lt;i style='color:#2E7D32;font-size:10px;'&gt;✔ vinculado 2026-09-11&lt;/i&gt;&lt;br/&gt;&lt;table border='1' cellpadding='2' cellspacing='0' width='100%'&gt;&lt;tr&gt;&lt;td&gt;PK &lt;b&gt;id&lt;/b&gt; UUID&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style='background:#E8F5E9;'&gt;FK &lt;b&gt;id_cliente&lt;/b&gt; UUID NULL → clientes.id_cliente &lt;b&gt;ON DELETE SET NULL&lt;/b&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;nombreCliente VARCHAR (3-100) &lt;i&gt;NOT NULL&lt;/i&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;telefonoCliente VARCHAR(30) NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;direccionCliente VARCHAR NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;correoCliente VARCHAR NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;servicio VARCHAR NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;tipoEquipo ENUM(cpu,portatil,escritorio,server,todo_en_uno) NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;nombreResponsable VARCHAR NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;marcaEquipo VARCHAR NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;modeloEquipo VARCHAR NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;referencia VARCHAR NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;tiempoGarantiaMeses INT NULL (0-240)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;fechaAdquisicion DATETIME NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;tipoMonitor VARCHAR NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;serialEquipo VARCHAR UNIQUE NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;tamanoPantallaPulgadas FLOAT NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;procesadorMarca VARCHAR NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;procesadorModelo VARCHAR NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;procesadorBits VARCHAR(10) NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;nucleosCpu INT NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;velocidadProcesador VARCHAR(50) NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;memoriaRamGb INT NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;cantidadDiscosDuros INT DEFAULT 1 NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;tecnologiaDisco1 VARCHAR(30) NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;capacidadDisco1Gb INT NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;tecnologiaDisco2 VARCHAR(30) NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;capacidadDisco2Gb INT NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;lectorDvdCd BOOLEAN DEFAULT false&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;tarjetaVideoIntegrada BOOLEAN DEFAULT false&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;tarjetaVideoIndependiente BOOLEAN DEFAULT false&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;conectoresVga INT NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;puertosHdmi INT NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;puertosUsb INT NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;puertosPci INT NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;puertosPciExpress INT NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;tarjetaEthernet BOOLEAN DEFAULT false&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;tarjetaRedInalambrica BOOLEAN DEFAULT false&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;marcaMouse VARCHAR NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;serialMouse VARCHAR NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;tipoConectorMouse VARCHAR(30) NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;observaciones TEXT NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;fechaRealizacion DATETIME NULL&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;createdAt DATETIME(6)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;updatedAt DATETIME(6)&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2E7D32;strokeWidth=1.5;" vertex="1" parent="1">
+          <geometry as="geometry" x="690" y="190" width="230" height="580" />
+        </mxCell>
+        <!-- Relaciones -->
+        <mxCell id="rel-dept-users" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1;endArrow=block;endFill=1;startArrow=none;endSize=8;" edge="1" parent="1" source="departamentos" target="users">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="110" y="145" /></Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="label-dept-users" value="1:N SET NULL" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;fontColor=#333333;labelBackgroundColor=#FFFFFF;" vertex="1" connectable="0" parent="rel-dept-users">
+          <geometry x="-0.2" y="-1" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </geometry>
+        </mxCell>
+        <mxCell id="rel-dept-empleados" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1;endArrow=block;endFill=1;startArrow=none;endSize=8;" edge="1" parent="1" source="departamentos" target="empleados">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="180" y="120" /><mxPoint x="230" y="120" /></Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="label-dept-emp" value="1:N RESTRICT" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;fontColor=#333333;labelBackgroundColor=#FFFFFF;" vertex="1" connectable="0" parent="rel-dept-empleados">
+          <geometry x="-0.05" y="1" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </geometry>
+        </mxCell>
+        <!-- RELACION CORREGIDA: clientes -> ficha_tecnica -->
+        <mxCell id="rel-cliente-ficha" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#2E7D32;strokeWidth=2;endArrow=block;endFill=1;startArrow=none;endSize=10;dashed=0;" edge="1" parent="1" source="clientes" target="ficha_tecnica">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="420" y="120" /><mxPoint x="690" y="120" /></Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="label-cliente-ficha" value="1:N  ficha_tecnica.id_cliente → clientes.id_cliente  ON DELETE SET NULL  (huérfana permitida)" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;fontColor=#2E7D32;fontStyle=1;labelBackgroundColor=#E8F5E9;rounded=1;" vertex="1" connectable="0" parent="rel-cliente-ficha">
+          <geometry x="-0.15" y="1" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </geometry>
+        </mxCell>
+        <mxCell id="rel-orden-followup" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1;endArrow=block;endFill=1;startArrow=none;endSize=8;" edge="1" parent="1" source="ordenes_servicio" target="seguimiento_eventos">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="555" y="235" /></Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="label-orden-seg" value="1:N CASCADE" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;fontColor=#333333;labelBackgroundColor=#FFFFFF;" vertex="1" connectable="0" parent="rel-orden-followup">
+          <geometry x="0.1" y="-1" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </geometry>
+        </mxCell>
+        <mxCell id="rel-ficha-orden" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1565C0;strokeWidth=1.5;endArrow=block;endFill=1;startArrow=none;endSize=8;dashed=1;dashPattern=5 4;" edge="1" parent="1" source="ficha_tecnica" target="ordenes_servicio">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="560" y="190" /><mxPoint x="560" y="150" /></Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="label-ficha-orden" value="M:N via orden_fichasTecnicas (JoinTable)" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;fontColor=#1565C0;labelBackgroundColor=#E3F2FD;rounded=1;" vertex="1" connectable="0" parent="rel-ficha-orden">
+          <geometry x="0.3" y="1" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </geometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
