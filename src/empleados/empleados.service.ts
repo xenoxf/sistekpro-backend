@@ -46,17 +46,36 @@ export class EmpleadosService {
     const limit = pagination.limit ?? 20;
     const skip = (page - 1) * limit;
 
-    const where = departamentoId
-      ? { departamento: { id_departamento: departamentoId } }
-      : {};
+    const qb = this.empleadoRepo
+      .createQueryBuilder('empleado')
+      .leftJoinAndSelect('empleado.departamento', 'departamento')
+      .orderBy('empleado.createdAt', 'DESC')
+      .skip(skip)
+      .take(limit);
 
-    const [data, total] = await this.empleadoRepo.findAndCount({
-      where,
-      order: { createdAt: 'DESC' },
-      relations: { departamento: true },
-      skip,
-      take: limit,
-    });
+    const search = (pagination as any).search?.trim();
+    const depId = departamentoId ?? (pagination as any).departamentoId;
+
+    if (depId) {
+      qb.andWhere('departamento.id_departamento = :depId', { depId });
+    }
+
+    if (search) {
+      const term = `%${search}%`;
+      qb.andWhere(
+        `(
+          empleado.id_empleado LIKE :term OR
+          empleado.nombre_empleado LIKE :term OR
+          empleado.apellido_empleado LIKE :term OR
+          empleado.correo_empleado LIKE :term OR
+          empleado.cargo LIKE :term OR
+          departamento.nombre_departamento LIKE :term
+        )`,
+        { term },
+      );
+    }
+
+    const [data, total] = await qb.getManyAndCount();
 
     return {
       data,

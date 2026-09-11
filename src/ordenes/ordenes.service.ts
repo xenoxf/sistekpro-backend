@@ -107,15 +107,38 @@ export class OrdenesService {
     const limit = pagination.limit ?? 20;
     const skip = (page - 1) * limit;
 
-    const where = estado ? { estado } : {};
+    const search = (pagination as any).search?.trim();
+    const estadoFilter = estado ?? (pagination as any).estado;
 
-    const [data, total] = await this.ordenesRepo.findAndCount({
-      where,
-      relations: { fichasTecnicas: true },
-      order: { createdAt: 'DESC' },
-      skip,
-      take: limit,
-    });
+    const qb = this.ordenesRepo
+      .createQueryBuilder('orden')
+      .leftJoinAndSelect('orden.fichasTecnicas', 'ficha')
+      .orderBy('orden.createdAt', 'DESC')
+      .skip(skip)
+      .take(limit);
+
+    if (estadoFilter) {
+      qb.andWhere('orden.estado = :estado', { estado: estadoFilter });
+    }
+
+    if (search) {
+      const term = `%${search}%`;
+      qb.andWhere(
+        `(
+          orden.id LIKE :term OR
+          orden.codigo LIKE :term OR
+          orden.fallaReportada LIKE :term OR
+          orden.estado LIKE :term OR
+          ficha.serialEquipo LIKE :term OR
+          ficha.nombreCliente LIKE :term OR
+          ficha.marcaEquipo LIKE :term OR
+          ficha.modeloEquipo LIKE :term
+        )`,
+        { term },
+      );
+    }
+
+    const [data, total] = await qb.getManyAndCount();
 
     return {
       data,

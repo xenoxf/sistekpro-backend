@@ -59,12 +59,28 @@ export class UsersService {
     const limit = pagination.limit ?? 20;
     const skip = (page - 1) * limit;
 
-    const [data, total] = await this.userRepository.findAndCount({
-      order: { createdAt: 'DESC' },
-      relations: { departamento: true },
-      skip,
-      take: limit,
-    });
+    const qb = this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.departamento', 'departamento')
+      .orderBy('user.createdAt', 'DESC')
+      .skip(skip)
+      .take(limit);
+
+    const search = (pagination as any).search?.trim();
+    if (search) {
+      const term = `%${search}%`;
+      qb.andWhere(
+        `(
+          user.id LIKE :term OR
+          user.name LIKE :term OR
+          user.role LIKE :term OR
+          departamento.nombre_departamento LIKE :term
+        )`,
+        { term },
+      );
+    }
+
+    const [data, total] = await qb.getManyAndCount();
 
     return {
       data,

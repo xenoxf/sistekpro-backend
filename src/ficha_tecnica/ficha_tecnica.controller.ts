@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -13,8 +12,7 @@ import {
 import { FichaTecnicaService } from './ficha_tecnica.service';
 import { CreateFichaTecnicaDto } from './dto/create-ficha_tecnica.dto';
 import { UpdateFichaTecnicaDto } from './dto/update-ficha_tecnica.dto';
-import { TIPO_EQUIPO } from './enums/TIPO_EQUIPO.enum';
-import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { FindFichaTecnicaDto } from './dto/find-ficha-tecnica.dto';
 import { ROLE } from 'src/users/enums/ROLE.enum';
 import { Roles } from 'src/common/decorators/roles.decorator';
 
@@ -31,22 +29,8 @@ export class FichaTecnicaController {
 
   @Roles(ROLE.admin, ROLE.gerente, ROLE.mantenimiento)
   @Get()
-  findAll(
-    @Query() pagination: PaginationDto,
-    @Query('serial') serial?: string,
-    @Query('tipoEquipo') tipoEquipo?: TIPO_EQUIPO,
-  ) {
-    if (tipoEquipo && !Object.values(TIPO_EQUIPO).includes(tipoEquipo)) {
-      throw new BadRequestException(
-        `tipoEquipo inválido. Valores permitidos: ${Object.values(TIPO_EQUIPO).join(', ')}`,
-      );
-    }
-
-    return this.fichaTecnicaService.findAll(
-      pagination,
-      serial?.trim() || undefined,
-      tipoEquipo,
-    );
+  findAll(@Query() query: FindFichaTecnicaDto) {
+    return this.fichaTecnicaService.findAll(query);
   }
 
   @Get(':id')

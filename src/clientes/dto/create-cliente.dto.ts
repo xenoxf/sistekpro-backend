@@ -5,6 +5,7 @@ import {
   IsString,
   Length,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class CreateClienteDto {
   @IsString()
@@ -18,21 +19,25 @@ export class CreateClienteDto {
   apellido_cliente: string;
 
   @IsOptional()
+  @Transform(({ value }) => (value === '' ? undefined : value))
   @IsEmail()
   @Length(0, 120)
   correo_cliente?: string;
 
   @IsOptional()
+  @Transform(({ value }) => (value === '' ? undefined : value))
   @IsString()
   @Length(0, 30)
   telefono?: string;
 
   @IsOptional()
+  @Transform(({ value }) => (value === '' ? undefined : value))
   @IsString()
   @Length(0, 150)
   dir?: string;
 
   @IsOptional()
+  @Transform(({ value }) => (value === '' ? undefined : value))
   @IsString()
   @Length(0, 50)
   tipo_cliente?: string;

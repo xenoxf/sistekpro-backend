@@ -12,9 +12,9 @@ import {
 import { EmpleadosService } from './empleados.service';
 import { CreateEmpleadoDto } from './dto/create-empleado.dto';
 import { UpdateEmpleadoDto } from './dto/update-empleado.dto';
+import { FindEmpleadosDto } from './dto/find-empleados.dto';
 import { ROLE } from 'src/users/enums/ROLE.enum';
 import { Roles } from 'src/common/decorators/roles.decorator';
-import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @Roles(ROLE.admin, ROLE.gerente)
 @Controller('empleados')
@@ -27,11 +27,8 @@ export class EmpleadosController {
   }
 
   @Get()
-  findAll(
-    @Query() pagination: PaginationDto,
-    @Query('departamentoId') departamentoId?: string,
-  ) {
-    return this.empleadosService.findAll(pagination, departamentoId);
+  findAll(@Query() query: FindEmpleadosDto) {
+    return this.empleadosService.findAll(query, query.departamentoId);
   }
 
   @Get(':id')

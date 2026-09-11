@@ -4,12 +4,12 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsWhere, In, Like, Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { CreateFichaTecnicaDto } from './dto/create-ficha_tecnica.dto';
 import { UpdateFichaTecnicaDto } from './dto/update-ficha_tecnica.dto';
+import { FindFichaTecnicaDto } from './dto/find-ficha-tecnica.dto';
 import { FichaTecnica } from './entities/ficha_tecnica.entity';
 import { Cliente } from 'src/clientes/entities/cliente.entity';
-import { TIPO_EQUIPO } from './enums/TIPO_EQUIPO.enum';
 import { PaginationDto, PaginatedResult } from 'src/common/dto/pagination.dto';
 
 const MS_POR_DIA = 1000 * 60 * 60 * 24;
@@ -60,31 +60,75 @@ export class FichaTecnicaService {
   }
 
   async findAll(
-    pagination: PaginationDto,
+    query: FindFichaTecnicaDto | PaginationDto,
     serial?: string,
-    tipoEquipo?: TIPO_EQUIPO,
+    tipoEquipo?: any,
   ): Promise<PaginatedResult<FichaTecnica>> {
-    const page = pagination.page ?? 1;
-    const limit = pagination.limit ?? 20;
+    // Soporta tanto firma antigua (pagination, serial, tipoEquipo) como nueva (FindFichaTecnicaDto)
+    let q: FindFichaTecnicaDto;
+    if (query && typeof query === 'object' && ('search' in query || 'serial' in query || 'tipoEquipo' in query || 'page' in query)) {
+      // Si el primer arg ya es un DTO con search/serial/tipoEquipo, úsalo
+      if (serial === undefined && tipoEquipo === undefined) {
+        q = query as FindFichaTecnicaDto;
+      } else {
+        // Firma antigua: (pagination, serial, tipoEquipo)
+        q = {
+          ...(query as PaginationDto),
+          serial: serial as string | undefined,
+          tipoEquipo: tipoEquipo as any,
+        } as FindFichaTecnicaDto;
+      }
+    } else {
+      q = query as FindFichaTecnicaDto;
+    }
+
+    const page = q.page ?? 1;
+    const limit = q.limit ?? 20;
     const skip = (page - 1) * limit;
 
-    const where: FindOptionsWhere<FichaTecnica> = {};
+    const qb = this.fichaTecnicaRepo
+      .createQueryBuilder('ficha')
+      .leftJoinAndSelect('ficha.cliente', 'cliente')
+      .orderBy('ficha.createdAt', 'DESC')
+      .skip(skip)
+      .take(limit);
 
-    if (serial) {
-      where.serialEquipo = Like(`%${serial}%`);
+    if (q.tipoEquipo) {
+      qb.andWhere('ficha.tipoEquipo = :tipoEquipo', { tipoEquipo: q.tipoEquipo });
     }
 
-    if (tipoEquipo) {
-      where.tipoEquipo = tipoEquipo;
+    if (q.serial) {
+      const s = `%${q.serial.trim()}%`;
+      qb.andWhere('(ficha.serialEquipo LIKE :serial)', { serial: s });
     }
 
-    const [data, total] = await this.fichaTecnicaRepo.findAndCount({
-      where,
-      order: { createdAt: 'DESC' },
-      relations: { cliente: true },
-      skip,
-      take: limit,
-    });
+    if (q.search?.trim()) {
+      const term = `%${q.search.trim()}%`;
+      qb.andWhere(
+        `(
+          ficha.id LIKE :term OR
+          ficha.nombreCliente LIKE :term OR
+          ficha.serialEquipo LIKE :term OR
+          ficha.marcaEquipo LIKE :term OR
+          ficha.modeloEquipo LIKE :term OR
+          ficha.referencia LIKE :term OR
+          ficha.correoCliente LIKE :term OR
+          ficha.telefonoCliente LIKE :term OR
+          ficha.direccionCliente LIKE :term OR
+          ficha.nombreResponsable LIKE :term OR
+          ficha.observaciones LIKE :term OR
+          ficha.tipoEquipo LIKE :term OR
+          cliente.nombre_cliente LIKE :term OR
+          cliente.apellido_cliente LIKE :term OR
+          cliente.correo_cliente LIKE :term OR
+          cliente.telefono LIKE :term OR
+          cliente.id_cliente LIKE :term
+        )`,
+        { term },
+      );
+    }
+
+    const [data, total] = await qb.getManyAndCount();
 
     return {
       data,

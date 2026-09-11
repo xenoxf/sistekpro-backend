@@ -27,8 +27,8 @@ export class ClientesController {
   }
 
   @Get()
-  findAll(@Query() pagination: PaginationDto, @Query('search') search?: string) {
-    return this.clientesService.findAll(pagination, search?.trim() || undefined);
+  findAll(@Query() pagination: PaginationDto) {
+    return this.clientesService.findAll(pagination, pagination.search);
   }
 
   @Get(':id')

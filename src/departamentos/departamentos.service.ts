@@ -33,11 +33,26 @@ export class DepartamentosService {
     const limit = pagination.limit ?? 20;
     const skip = (page - 1) * limit;
 
-    const [data, total] = await this.departamentoRepo.findAndCount({
-      order: { createdAt: 'DESC' },
-      skip,
-      take: limit,
-    });
+    const qb = this.departamentoRepo
+      .createQueryBuilder('departamento')
+      .orderBy('departamento.createdAt', 'DESC')
+      .skip(skip)
+      .take(limit);
+
+    const search = (pagination as any).search?.trim();
+    if (search) {
+      const term = `%${search}%`;
+      qb.andWhere(
+        `(
+          departamento.id_departamento LIKE :term OR
+          departamento.nombre_departamento LIKE :term OR
+          departamento.descripcion LIKE :term
+        )`,
+        { term },
+      );
+    }
+
+    const [data, total] = await qb.getManyAndCount();
 
     return {
       data,

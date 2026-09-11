@@ -6,6 +6,7 @@ import {
   IsUUID,
   Length,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 import { ROLE } from '../enums/ROLE.enum';
 
 export class CreateUserDto {
@@ -21,9 +22,11 @@ export class CreateUserDto {
 
   @IsEnum(ROLE)
   @IsOptional()
+  @Transform(({ value }) => (value === '' ? undefined : value))
   role?: ROLE;
 
   @IsOptional()
+  @Transform(({ value }) => (value === '' ? undefined : value))
   @IsUUID()
   departamentoId?: string;
 }

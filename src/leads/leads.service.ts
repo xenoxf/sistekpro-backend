@@ -28,11 +28,29 @@ export class LeadsService {
     const limit = pagination.limit ?? 20;
     const skip = (page - 1) * limit;
 
-    const [data, total] = await this.leadRepo.findAndCount({
-      order: { createdAt: 'DESC' },
-      skip,
-      take: limit,
-    });
+    const qb = this.leadRepo
+      .createQueryBuilder('lead')
+      .orderBy('lead.createdAt', 'DESC')
+      .skip(skip)
+      .take(limit);
+
+    const search = (pagination as any).search?.trim();
+    if (search) {
+      const term = `%${search}%`;
+      qb.andWhere(
+        `(
+          lead.id LIKE :term OR
+          lead.nombre LIKE :term OR
+          lead.email LIKE :term OR
+          lead.numero LIKE :term OR
+          lead.servicio LIKE :term OR
+          lead.message LIKE :term
+        )`,
+        { term },
+      );
+    }
+
+    const [data, total] = await qb.getManyAndCount();
 
     return {
       data,

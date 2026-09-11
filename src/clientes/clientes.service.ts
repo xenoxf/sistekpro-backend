@@ -40,6 +40,8 @@ export class ClientesService {
     const limit = pagination.limit ?? 20;
     const skip = (page - 1) * limit;
 
+    // search puede venir en pagination.search (desde PaginationDto) o como segundo param
+    const termRaw = (search ?? (pagination as any).search)?.trim();
     const qb = this.clienteRepo
       .createQueryBuilder('cliente')
       .leftJoinAndSelect('cliente.fichasTecnicas', 'ficha')
@@ -47,10 +49,18 @@ export class ClientesService {
       .skip(skip)
       .take(limit);
 
-    if (search?.trim()) {
-      const term = `%${search.trim()}%`;
+    if (termRaw) {
+      const term = `%${termRaw}%`;
       qb.andWhere(
-        '(cliente.nombre_cliente LIKE :term OR cliente.apellido_cliente LIKE :term OR cliente.correo_cliente LIKE :term OR cliente.telefono LIKE :term)',
+        `(
+          cliente.id_cliente LIKE :term OR
+          cliente.nombre_cliente LIKE :term OR
+          cliente.apellido_cliente LIKE :term OR
+          cliente.correo_cliente LIKE :term OR
+          cliente.telefono LIKE :term OR
+          cliente.dir LIKE :term OR
+          cliente.tipo_cliente LIKE :term
+        )`,
         { term },
       );
     }
