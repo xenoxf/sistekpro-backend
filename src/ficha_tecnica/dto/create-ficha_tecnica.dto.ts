@@ -11,6 +11,7 @@ import {
   Max,
   Min,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 import { TIPO_EQUIPO } from '../enums/TIPO_EQUIPO.enum';
 
 /**
@@ -20,6 +21,7 @@ import { TIPO_EQUIPO } from '../enums/TIPO_EQUIPO.enum';
  */
 export class CreateFichaTecnicaDto {
   @IsOptional()
+  @Transform(({ value }) => (value === '' ? undefined : value))
   @IsUUID()
   id_cliente?: string;
 
@@ -49,6 +51,7 @@ export class CreateFichaTecnicaDto {
   servicio?: string;
 
   @IsOptional()
+  @Transform(({ value }) => (value === '' ? undefined : value))
   @IsEnum(TIPO_EQUIPO)
   tipoEquipo?: TIPO_EQUIPO;
 
@@ -80,6 +83,7 @@ export class CreateFichaTecnicaDto {
 
   @IsOptional()
   @IsDateString()
+  @Transform(({ value }) => (value === '' ? undefined : value))
   fechaAdquisicion?: string;
 
   @IsOptional()
@@ -230,5 +234,6 @@ export class CreateFichaTecnicaDto {
 
   @IsOptional()
   @IsDateString()
+  @Transform(({ value }) => (value === '' ? undefined : value))
   fechaRealizacion?: string;
 }

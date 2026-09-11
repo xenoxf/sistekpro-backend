@@ -32,17 +32,30 @@ export class ClientesService {
     return this.clienteRepo.save(cliente);
   }
 
-  async findAll(pagination: PaginationDto): Promise<PaginatedResult<Cliente>> {
+  async findAll(
+    pagination: PaginationDto,
+    search?: string,
+  ): Promise<PaginatedResult<Cliente>> {
     const page = pagination.page ?? 1;
     const limit = pagination.limit ?? 20;
     const skip = (page - 1) * limit;
 
-    const [data, total] = await this.clienteRepo.findAndCount({
-      order: { createdAt: 'DESC' },
-      relations: { fichasTecnicas: true },
-      skip,
-      take: limit,
-    });
+    const qb = this.clienteRepo
+      .createQueryBuilder('cliente')
+      .leftJoinAndSelect('cliente.fichasTecnicas', 'ficha')
+      .orderBy('cliente.createdAt', 'DESC')
+      .skip(skip)
+      .take(limit);
+
+    if (search?.trim()) {
+      const term = `%${search.trim()}%`;
+      qb.andWhere(
+        '(cliente.nombre_cliente LIKE :term OR cliente.apellido_cliente LIKE :term OR cliente.correo_cliente LIKE :term OR cliente.telefono LIKE :term)',
+        { term },
+      );
+    }
+
+    const [data, total] = await qb.getManyAndCount();
 
     return {
       data,
