@@ -25,13 +25,13 @@ export class LeadsController {
     return this.leadsService.create(dto);
   }
 
-  @Roles(ROLE.admin, ROLE.marketing)
+  @Roles(ROLE.admin, ROLE.marketing, ROLE.gerente)
   @Get()
   findAll(@Query() pagination: PaginationDto) {
     return this.leadsService.findAll(pagination);
   }
 
-  @Roles(ROLE.admin, ROLE.marketing)
+  @Roles(ROLE.admin, ROLE.marketing, ROLE.gerente)
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.leadsService.findOne(id);
