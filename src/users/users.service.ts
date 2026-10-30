@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
   Injectable,
@@ -11,7 +12,8 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { Departamento } from 'src/departamentos/entities/departamento.entity';
-import { ROLE } from './enums/ROLE.enum';
+import { ROLE, ROL_ADMIN, ROLES_FIJOS, ROLES_RESERVADOS } from './enums/ROLE.enum';
+import { normalizeKey } from 'src/common/utils/normalize-key.util';
 import { PaginationDto, PaginatedResult } from 'src/common/dto/pagination.dto';
 
 const BCRYPT_SALT_ROUNDS = 10;
@@ -26,11 +28,6 @@ export class UsersService {
   ) {}
 
   async create(dto: CreateUserDto): Promise<User> {
-    if (dto.role === ROLE.admin) {
-      throw new ForbiddenException(
-        'No se permite crear usuarios con rol admin. Solo puede existir un admin.',
-      );
-    }
     await this.assertNameAvailable(dto.name);
 
     let departamento: Departamento | null = null;
@@ -46,7 +43,7 @@ export class UsersService {
     const user = this.userRepository.create({
       name: dto.name,
       password: await bcrypt.hash(dto.password, BCRYPT_SALT_ROUNDS),
-      role: dto.role ?? ROLE.mantenimiento,
+      role: await this.resolveRole(dto.role, departamento),
       departamento: departamento,
     });
 
@@ -66,7 +63,7 @@ export class UsersService {
       .skip(skip)
       .take(limit);
 
-    const search = (pagination as any).search?.trim();
+    const search = pagination.search?.trim();
     if (search) {
       const term = `%${search}%`;
       qb.andWhere(
@@ -140,13 +137,13 @@ export class UsersService {
       }
     }
 
-    if (dto.role) {
-      if (dto.role === ROLE.admin) {
+    if (dto.role !== undefined && normalizeKey(dto.role) !== normalizeKey(user.role)) {
+      if (normalizeKey(user.role) === ROL_ADMIN) {
         throw new ForbiddenException(
-          'No se permite asignar el rol admin.',
+          'El usuario admin no puede cambiar de rol. Solo debe existir un admin.',
         );
       }
-      user.role = dto.role;
+      user.role = await this.resolveRole(dto.role, user.departamento);
     }
     if (dto.name) user.name = dto.name;
     if (dto.password) user.password = dto.password;
@@ -188,5 +185,57 @@ export class UsersService {
     if (existing) {
       throw new ConflictException('El nombre de usuario ya está registrado');
     }
+  }
+
+  /**
+   * Valida y normaliza el rol a guardar.
+   *
+   * Un rol puede ser la clave de cualquier departamento creado ('informatica',
+   * 'capacitacion', ...) o de los roles fijos ('gerente'). Si no llega rol, se
+   * deriva del departamento elegido, de modo que crear un usuario quede ligado
+   * al departamento al que entra.
+   */
+  private async resolveRole(
+    role: string | undefined,
+    departamento: Departamento | null,
+  ): Promise<string> {
+    const clave = normalizeKey(role);
+
+    if (!clave) {
+      return (
+        normalizeKey(departamento?.nombre_departamento) || ROLE.mantenimiento
+      );
+    }
+
+    if (ROLES_RESERVADOS.includes(clave)) {
+      throw new ForbiddenException(
+        'No se permite asignar el rol admin. Solo puede existir un admin.',
+      );
+    }
+
+    const disponibles = await this.rolesDisponibles();
+    if (!disponibles.includes(clave)) {
+      throw new BadRequestException(
+        `El rol "${role}" no corresponde a ningún departamento. ` +
+          `Roles disponibles: ${disponibles.join(', ')}.`,
+      );
+    }
+
+    return clave;
+  }
+
+  /** Roles fijos + la clave de cada departamento creado. */
+  private async rolesDisponibles(): Promise<string[]> {
+    const departamentos = await this.departamentoRepo.find({
+      select: { nombre_departamento: true },
+    });
+
+    const claves = departamentos
+      .map((dep) => normalizeKey(dep.nombre_departamento))
+      .filter(Boolean);
+
+    return [
+      ...new Set([...ROLES_FIJOS, ...Object.values(ROLE), ...claves]),
+    ].filter((rol) => !ROLES_RESERVADOS.includes(rol));
   }
 }

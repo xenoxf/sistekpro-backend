@@ -1,5 +1,4 @@
 import {
-  IsEnum,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -7,7 +6,6 @@ import {
   Length,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
-import { ROLE } from '../enums/ROLE.enum';
 
 export class UpdateUserDto {
   @IsOptional()
@@ -26,8 +24,9 @@ export class UpdateUserDto {
 
   @IsOptional()
   @Transform(({ value }) => (value === '' ? undefined : value))
-  @IsEnum(ROLE)
-  role?: ROLE;
+  @IsString()
+  @Length(1, 64)
+  role?: string;
 
   @IsOptional()
   @Transform(({ value }) => (value === '' ? undefined : value))

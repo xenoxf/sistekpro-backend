@@ -1,7 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { ROLE } from 'src/users/enums/ROLE.enum';
 import { User } from 'src/users/entities/user.entity';
 import { UsersService } from 'src/users/users.service';
 import { CreateLoginDto } from './dto/create-login-dto.dto';
@@ -12,7 +11,7 @@ export interface AuthResponse {
   user: {
     id: string;
     name: string;
-    role: ROLE;
+    role: string;
     departamentoId: string | null;
     departamentoNombre: string | null;
   };

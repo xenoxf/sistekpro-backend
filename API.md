@@ -42,8 +42,11 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
 
 | Rol | Acceso |
 |---|---|
-| `admin` | Todo, incluida gestión de usuarios (`/users`) |
-| `mantenimiento` | Rutas generales (fichas técnicas) |
+| `admin` | Todo, incluida gestión de usuarios (`/users`). Rol reservado: no se crea ni se asigna desde la API |
+| `gerente` | Rutas generales; en formularios (`/leads`) ve **todos** |
+| Claves de departamento (`mantenimiento`, `redes`, `informatica`, `marketing`, `capacitacion`, ...) | Rutas generales; en formularios ve solo los de su departamento |
+
+Los roles de departamento **son dinámicos**: coinciden con los departamentos creados en la tabla `departments`. Se validan en cada alta/edición de usuario; la comparación normaliza tildes y mayúsculas (`"Informática"` → `informatica`). Un formulario cuyo servicio no tiene departamento asignado (`otro`) solo lo ven `admin` y `gerente`.
 
 El rol viaja dentro del JWT (`role`) y es verificado automáticamente por el backend.
 
@@ -130,9 +133,29 @@ Errores: `401` si las credenciales son inválidas.
 
 ## 3. Usuarios `/users`
 
-Requieren JWT con rol **`admin`**. Todos los endpoints de esta sección fallan con `403` para roles `mantenimiento`.
+Requieren JWT con rol **`admin`**. Todos los endpoints de esta sección fallan con `403` para cualquier otro rol.
 
-### 3.1. Listar usuarios
+### 3.1. Crear usuario
+
+```http
+POST /users
+```
+
+Body:
+
+```json
+{
+  "name": "jperez",
+  "password": "Segura*456",
+  "role": "informatica",
+  "departamentoId": "uuid-opcional"
+}
+```
+
+- `role`: clave de un departamento existente o `gerente`. Se valida contra los departamentos creados; si no existe, responde `400`. Si se omite, se deriva del `departamentoId`.
+- Respuesta `201` con el usuario creado (sin contraseña). `409` si el nombre ya existe.
+
+### 3.2. Listar usuarios
 
 ```http
 GET /users
@@ -154,7 +177,7 @@ Respuesta `200`:
 
 > La contraseña nunca se devuelve en ninguna respuesta.
 
-### 3.2. Obtener un usuario
+### 3.3. Obtener un usuario
 
 ```http
 GET /users/:id
@@ -162,9 +185,7 @@ GET /users/:id
 
 `:id` debe ser un UUID válido (si no, responde `400`).
 
-> **Nota:** no existe endpoint para crear usuarios. Los usuarios se crean únicamente mediante el seed interno (`src/database/seed.ts`).
-
-### 3.3. Actualizar usuario
+### 3.4. Actualizar usuario
 
 ```http
 PATCH /users/:id
@@ -182,7 +203,17 @@ Body (todos los campos opcionales):
 
 Si se envía `password` se re-hashea automáticamente. Respuesta `200` con el usuario actualizado.
 
-### 3.4. Eliminar usuario
+Si se envía `role` se valida igual que en la creación. El rol del usuario `admin` **no se puede cambiar** (responde `400`).
+
+### 3.5. Asignar departamento
+
+```http
+PATCH /users/:id/departamento
+```
+
+Body: `{ "departamentoId": "uuid" }` (o `null` para quitar el departamento). El rol del usuario no cambia automáticamente; edita `role` aparte si debe coincidir con el departamento.
+
+### 3.6. Eliminar usuario
 
 ```http
 DELETE /users/:id
@@ -194,7 +225,7 @@ Respuesta `200`:
 { "message": "Usuario eliminado correctamente" }
 ```
 
-### 3.5. Perfil del usuario autenticado
+### 3.7. Perfil del usuario autenticado
 
 Requiere cualquier JWT válido (sin importar el rol):
 
@@ -527,6 +558,10 @@ Errores: `404` si el código no existe. Los eventos vienen en orden cronológico
 | PATCH | `/ordenes/:id/estado` | API Key + JWT | admin/mantenimiento | Cambiar estado (+evento en timeline) |
 | DELETE | `/ordenes/:id` | API Key + JWT | admin/mantenimiento | Eliminar orden |
 | GET | `/seguimiento/:codigo` | **Solo API Key** | — (público) | Progreso para el QR del cliente |
+| POST | `/leads` | **Solo API Key** | — (público) | Crear formulario del sitio |
+| GET | `/leads` | API Key + JWT | cualquiera | Listar formularios (filtrados por departamento) |
+| GET | `/leads/:id` | API Key + JWT | cualquiera | Ver formulario (404 si no es de tu departamento) |
+| DELETE | `/leads/:id` | API Key + JWT | admin | Eliminar formulario |
 
 ## 7. Notas para la integración
 
@@ -536,3 +571,46 @@ Errores: `404` si el código no existe. Los eventos vienen en orden cronológico
 4. Todas las fechas se envían en formato ISO (`YYYY-MM-DD` o completo) y se reciben como ISO 8601 UTC.
 5. IDs son UUID v4: validar en cliente antes de navegar a rutas `/recurso/:id`.
 6. CORS habilitado solo para los orígenes configurados en `CORS_ORIGIN` del `.env`.
+
+## 8. Formularios (leads) `/leads`
+
+Los leads son los formularios que envía el público desde el sitio web.
+
+### 8.1. Crear (público)
+
+```http
+POST /leads
+```
+
+Body:
+
+```json
+{
+  "nombre": "Juan Pérez",
+  "email": "cliente@empresa.com",
+  "telefono": "3001234567",
+  "mensaje": "Necesito cotizar instalación de red",
+  "servicio": "redes"
+}
+```
+
+`servicio` debe ser uno de: `mantenimiento`, `redes`, `cableado`, `configuracion`, `wifi`, `redes-datos`, `soporte`, `remoto`, `web`, `capacitacion`, `marketing`, `otro`.
+
+### 8.2. Visibilidad por departamento
+
+Cada `servicio` se asocia a un departamento (definido en `src/leads/servicio-departamento.ts`):
+
+| Servicio | Departamento |
+|---|---|
+| `mantenimiento`, `soporte`, `remoto` | `mantenimiento` |
+| `redes`, `cableado`, `configuracion`, `wifi`, `redes-datos` | `redes` |
+| `web` | `informatica` |
+| `capacitacion` | `capacitacion` |
+| `marketing` | `marketing` |
+| `otro` | sin departamento |
+
+`GET /leads` y `GET /leads/:id` recortan la lista según el rol del usuario:
+
+- `admin` y `gerente`: ven **todos** los formularios.
+- Otros roles: ven solo los formularios de los servicios de su departamento.
+- Si el formulario no le pertenece, `GET /leads/:id` responde `404` (no `403`, para no revelar su existencia).

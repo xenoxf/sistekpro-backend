@@ -1,4 +1,5 @@
 import { IsEmail, IsIn, IsNotEmpty, IsString, Length } from 'class-validator';
+import { SERVICIOS_LEAD } from '../servicio-departamento';
 
 export class CreateLeadDto {
   @IsString()
@@ -19,15 +20,7 @@ export class CreateLeadDto {
 
   @IsString()
   @IsNotEmpty()
-  @IsIn([
-    'mantenimiento',
-    'redes',
-    'cableado',
-    'configuracion',
-    'soporte',
-    'wifi',
-    'otro',
-  ])
+  @IsIn(SERVICIOS_LEAD)
   servicio: string;
 
   @IsString()

@@ -22,8 +22,13 @@ export class User {
   @Column({ select: false })
   password: string;
 
-  @Column({ type: 'enum', enum: ROLE, default: ROLE.mantenimiento })
-  role: ROLE;
+  /**
+   * Clave del rol: 'admin', 'gerente' o la clave de un departamento
+   * ('informatica', 'marketing', ...). Se guarda como texto para que un
+   * departamento nuevo sirva de rol sin alterar el esquema.
+   */
+  @Column({ type: 'varchar', length: 64, default: ROLE.mantenimiento })
+  role: string;
 
   @ManyToOne(() => Departamento, {
     nullable: true,

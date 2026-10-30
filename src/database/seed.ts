@@ -18,12 +18,13 @@ const SEED_DEPARTAMENTOS: Array<{
 }> = [
   {
     nombre_departamento: 'administracion',
-    descripcion: 'Administración y gerencia del sistema',
+    descripcion:
+      'Organización, recursos, finanzas y documentación de la empresa',
   },
   {
     nombre_departamento: 'mantenimiento',
     descripcion:
-      'Departamento de mantenimiento técnico y reparación de equipos',
+      'Mantenimiento predictivo, preventivo y correctivo de equipos de cómputo',
   },
   {
     nombre_departamento: 'ventas',
@@ -32,6 +33,26 @@ const SEED_DEPARTAMENTOS: Array<{
   {
     nombre_departamento: 'soporte',
     descripcion: 'Soporte técnico y atención postventa',
+  },
+  {
+    nombre_departamento: 'marketing',
+    descripcion:
+      'Identidad de marca, contenido, redes sociales y campañas digitales',
+  },
+  {
+    nombre_departamento: 'redes',
+    descripcion:
+      'Diseño, instalación y administración de redes y equipos activos',
+  },
+  {
+    nombre_departamento: 'informatica',
+    descripcion:
+      'Diseño, desarrollo y mantenimiento de páginas web, software y bases de datos',
+  },
+  {
+    nombre_departamento: 'capacitacion',
+    descripcion:
+      'Capacitación en herramientas informáticas, seguridad y protección de la información',
   },
 ];
 

@@ -1,6 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { User } from './entities/user.entity';
 import { Departamento } from 'src/departamentos/entities/departamento.entity';
@@ -9,6 +13,22 @@ import { ROLE } from './enums/ROLE.enum';
 jest.mock('bcrypt', () => ({
   hash: jest.fn().mockResolvedValue('hashed-password'),
 }));
+
+/** Query builder simulado: cubre los encadenamientos que usa UsersService. */
+function mockQueryBuilder(overrides: Record<string, unknown> = {}) {
+  return {
+    addSelect: jest.fn().mockReturnThis(),
+    leftJoinAndSelect: jest.fn().mockReturnThis(),
+    where: jest.fn().mockReturnThis(),
+    andWhere: jest.fn().mockReturnThis(),
+    orderBy: jest.fn().mockReturnThis(),
+    skip: jest.fn().mockReturnThis(),
+    take: jest.fn().mockReturnThis(),
+    getOne: jest.fn().mockResolvedValue(null),
+    getManyAndCount: jest.fn().mockResolvedValue([[], 0]),
+    ...overrides,
+  };
+}
 
 describe('UsersService', () => {
   let service: UsersService;
@@ -21,6 +41,11 @@ describe('UsersService', () => {
     findOne: jest.Mock;
     createQueryBuilder: jest.Mock;
     remove: jest.Mock;
+  };
+  let departamentoRepository: {
+    find: jest.Mock;
+    findOne: jest.Mock;
+    findOneBy: jest.Mock;
   };
 
   const mockUser: User = {
@@ -42,16 +67,12 @@ describe('UsersService', () => {
       findAndCount: jest.fn().mockResolvedValue([[mockUser], 1]),
       findOneBy: jest.fn().mockResolvedValue(null),
       findOne: jest.fn().mockResolvedValue(mockUser),
-      createQueryBuilder: jest.fn().mockReturnValue({
-        addSelect: jest.fn().mockReturnThis(),
-        leftJoinAndSelect: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-        getOne: jest.fn().mockResolvedValue(null),
-      }),
+      createQueryBuilder: jest.fn().mockReturnValue(mockQueryBuilder()),
       remove: jest.fn().mockResolvedValue(mockUser),
     };
 
-    const departamentoRepository = {
+    departamentoRepository = {
+      find: jest.fn().mockResolvedValue([]),
       findOneBy: jest.fn().mockResolvedValue(null),
       findOne: jest.fn().mockResolvedValue(null),
     };
@@ -79,10 +100,84 @@ describe('UsersService', () => {
 
   describe('findAll', () => {
     it('should return all users', async () => {
+      const qb = mockQueryBuilder({
+        getManyAndCount: jest.fn().mockResolvedValue([[mockUser], 1]),
+      });
+      userRepository.createQueryBuilder.mockReturnValue(qb);
+
       const result = await service.findAll({});
 
       expect(result.data).toEqual([mockUser]);
-      expect(userRepository.findAndCount).toHaveBeenCalled();
+      expect(result.meta.total).toBe(1);
+      expect(qb.getManyAndCount).toHaveBeenCalled();
+    });
+
+    it('should filter by search term', async () => {
+      const qb = mockQueryBuilder({
+        getManyAndCount: jest.fn().mockResolvedValue([[mockUser], 1]),
+      });
+      userRepository.createQueryBuilder.mockReturnValue(qb);
+
+      await service.findAll({ search: 'sara' });
+
+      expect(qb.andWhere).toHaveBeenCalled();
+    });
+  });
+
+  describe('create', () => {
+    const dto = { name: 'nuevo', password: 'secret-1' };
+
+    beforeEach(() => {
+      // El nombre está disponible: findOne solo se usa para traer el usuario creado.
+      userRepository.findOne.mockImplementation(
+        (opts: { where?: { name?: string } }) =>
+          Promise.resolve(opts?.where?.name ? null : mockUser),
+      );
+    });
+
+    it('derives the role from the department when no role is sent', async () => {
+      departamentoRepository.findOneBy.mockResolvedValue({
+        id_departamento: 'dep-1',
+        nombre_departamento: 'Informática',
+      });
+
+      await service.create({ ...dto, departamentoId: 'dep-1' });
+
+      expect(userRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({ role: 'informatica' }),
+      );
+    });
+
+    it('accepts a role that matches an existing department', async () => {
+      departamentoRepository.find.mockResolvedValue([
+        { nombre_departamento: 'capacitación' },
+      ]);
+
+      await service.create({ ...dto, role: 'Capacitación' });
+
+      expect(userRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({ role: 'capacitacion' }),
+      );
+    });
+
+    it('keeps the fixed "gerente" role without departments', async () => {
+      await service.create({ ...dto, role: 'gerente' });
+
+      expect(userRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({ role: 'gerente' }),
+      );
+    });
+
+    it('rejects the reserved admin role', async () => {
+      await expect(service.create({ ...dto, role: 'admin' })).rejects.toThrow(
+        ForbiddenException,
+      );
+    });
+
+    it('rejects a role that does not belong to any department', async () => {
+      await expect(service.create({ ...dto, role: 'quark' })).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 

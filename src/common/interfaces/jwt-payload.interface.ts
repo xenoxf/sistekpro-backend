@@ -1,9 +1,8 @@
-import { ROLE } from 'src/users/enums/ROLE.enum';
-
 export interface JwtPayload {
   sub: string;
   name: string;
-  role: ROLE;
+  /** Clave del rol: 'admin', 'gerente' o la clave de un departamento. */
+  role: string;
   departamentoId?: string | null;
   departamentoNombre?: string | null;
   iat?: number;

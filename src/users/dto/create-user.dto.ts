@@ -1,5 +1,4 @@
 import {
-  IsEnum,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -7,7 +6,6 @@ import {
   Length,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
-import { ROLE } from '../enums/ROLE.enum';
 
 export class CreateUserDto {
   @IsString()
@@ -20,10 +18,17 @@ export class CreateUserDto {
   @IsNotEmpty()
   password: string;
 
-  @IsEnum(ROLE)
+  /**
+   * Clave de un departamento existente ('informatica', 'redes', ...) o de un
+   * rol fijo ('gerente'). La validación contra los departamentos creados se
+   * hace en el servicio, ya que son datos y no una enumeración de esquema.
+   * Si se omite, se toma la clave del departamento elegido.
+   */
+  @IsString()
+  @Length(1, 64)
   @IsOptional()
   @Transform(({ value }) => (value === '' ? undefined : value))
-  role?: ROLE;
+  role?: string;
 
   @IsOptional()
   @Transform(({ value }) => (value === '' ? undefined : value))

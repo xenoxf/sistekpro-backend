@@ -19,7 +19,7 @@ import { PaginationDto } from 'src/common/dto/pagination.dto';
 @Controller('users')
 @Roles(ROLE.admin)
 export class UsersController {
-  constructor(private readonly usersService: UsersService) { }
+  constructor(private readonly usersService: UsersService) {}
 
   @Post()
   create(@Body() dto: CreateUserDto) {
