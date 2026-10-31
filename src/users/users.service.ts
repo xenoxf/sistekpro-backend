@@ -202,9 +202,14 @@ export class UsersService {
     const clave = normalizeKey(role);
 
     if (!clave) {
-      return (
-        normalizeKey(departamento?.nombre_departamento) || ROLE.mantenimiento
-      );
+      const depNombre = normalizeKey(departamento?.nombre_departamento);
+      if (depNombre) {
+        return depNombre;
+      }
+      // Si no hay departamento, usamos 'gerente' como rol por defecto
+      // en lugar de 'mantenimiento', para evitar que todos los usuarios
+      // tengan el mismo rol por defecto.
+      return ROLE.gerente;
     }
 
     if (ROLES_RESERVADOS.includes(clave)) {

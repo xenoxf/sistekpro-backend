@@ -27,7 +27,7 @@ export class User {
    * ('informatica', 'marketing', ...). Se guarda como texto para que un
    * departamento nuevo sirva de rol sin alterar el esquema.
    */
-  @Column({ type: 'varchar', length: 64, default: ROLE.mantenimiento })
+  @Column({ type: 'varchar', length: 64 })
   role: string;
 
   @ManyToOne(() => Departamento, {
